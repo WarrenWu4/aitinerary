@@ -1,7 +1,9 @@
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router";
+
 import Home from "./pages/Home";
 import TripTable from "./pages/TripTable";
+import TripView from "./pages/TripView"
 
 const root = document.getElementById("root");
 
@@ -12,7 +14,7 @@ ReactDOM.createRoot(root!).render(
       <Route path="/about" element={<Home />} />
 
       <Route path="/trips/:uid" element={<TripTable />} />
-      <Route path="/trips/:uid/:tripid" element={<Home />} />
+      <Route path="/trips/:uid/:tripid" element={<TripView />} />
       <Route path="/trips/:uid/:tripid/edit" element={<Home />} />
 
       <Route path="/scrapbooks/:uid" element={<Home />} />

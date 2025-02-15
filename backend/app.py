@@ -3,6 +3,7 @@
 
 import json
 from os import environ as env
+import auth
 from urllib.parse import quote_plus, urlencode
 
 from authlib.integrations.flask_client import OAuth
@@ -21,14 +22,18 @@ app = Flask(__name__)
 
 
 @app.route("/callback", methods=["GET", "POST"])
-
+def callback():
+    return auth.callback()
 
 
 @app.route("/login")
-
+def login():
+    return auth.login()
 
 
 @app.route("/logout")
+def logout():
+    return auth.logout()
 
 
 

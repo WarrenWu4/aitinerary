@@ -12,6 +12,11 @@ if ENV_FILE:
 app = Flask(__name__)
 
 
+@app.route("/")
+def index():
+    return jsonify({"message": "Flask server is running"}), 200
+
+
 @app.route("/listings")
 def get_listings():
     listings, error = get_all_listings()

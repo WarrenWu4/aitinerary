@@ -1,5 +1,5 @@
-"""Python Flask WebApp Auth0 integration example
-"""
+from flask import Flask, jsonify
+from db import get_all_listings
 
 import json
 from os import environ as env
@@ -16,6 +16,15 @@ if ENV_FILE:
 
 app = Flask(__name__)
 
+
+@app.route("/listings")
+def get_listings():
+    listings, error = get_all_listings()
+
+    if error:
+        return jsonify({"error": error}), 500
+
+    return jsonify({"listings": listings}), 200
 
 
 
@@ -38,4 +47,4 @@ def logout():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=env.get("PORT", 3000))
+    app.run()

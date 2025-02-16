@@ -22,3 +22,14 @@ from retell import Retell
 retell_client = Retell(
     api_key="YOUR_API_KEY"
 )
+
+def inbound(number):
+    if number.startswith("+1"):
+        number = number[2:]
+
+    if number.startswith("832"):
+        return {"name": "Andrew"}
+    elif number.startswith("512"):
+        return {"name": "Warren"}
+    else:
+        return {"name": ""}

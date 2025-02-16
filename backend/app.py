@@ -3,6 +3,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
 import auth
+from backend import retell_functions
 from db import db, trips_collection, days_collection, activities_collection, users_collection
 from models import (
     create_user, create_trip, create_day, create_activity, 
@@ -551,6 +552,18 @@ def get_recommendation():
         return jsonify({"error": "No response from AI"}), 500
     text = response.text.replace("\\", " ")
     return jsonify({"msg": text}), 200
+
+@app.route("/retell/inbound", methods=["POST"])
+def retell_inbound():
+    data = request.json
+
+    if not data:
+        return jsonify({"error": "Data is required"}), 400
+
+    number = data["number"]
+
+    return jsonify(retell_functions.inbound(number), 200)
+
 
 
 if __name__ == "__main__":

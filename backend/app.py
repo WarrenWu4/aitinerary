@@ -6,7 +6,7 @@ import auth
 from db import db, trips_collection, days_collection, activities_collection
 from models import (
     create_user, create_trip, create_day, create_activity, 
-    get_user_trips, get_user_by_oauth_id, to_json
+    get_user_trips, get_user_by_oauth_id, to_json, update_trip, delete_trip
 )
 from bson import ObjectId
 from auth import requires_auth, get_current_user, get_user_data
@@ -54,7 +54,21 @@ def user_trips(user_id):
     if str(user['_id']) != user_id:
         return jsonify({"error": "Unauthorized"}), 403
         
-    return get_user_trips(user_id)
+    try:
+        trips = list(trips_collection.find({
+            "$or": [
+                {"owner_id": user_id},
+                {"collaborators": user_id}
+            ]
+        }))
+        
+        # Convert trips for JSON serialization
+        for trip in trips:
+            trip["_id"] = str(trip["_id"])
+            
+        return jsonify({"trips": trips}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/users", methods=["POST"])
@@ -114,7 +128,7 @@ def add_activity(day_id):
     
     return create_activity(day_id, activity_data)
 
-
+# test create 
 @app.route("/test/create")
 @requires_auth
 def create_test_data():
@@ -187,6 +201,109 @@ def get_user():
     if user_data:
         return jsonify(user_data)
     return jsonify({"error": "User not found"}), 404
+
+@app.route("/trips/<trip_id>", methods=["PATCH"])
+@requires_auth
+def edit_trip(trip_id):
+    try:
+        current_user = get_current_user()
+        user = get_user_by_oauth_id(current_user['userinfo']['sub'])
+        
+        # Find trip
+        trip = trips_collection.find_one({"_id": trip_id})
+        if not trip:
+            return jsonify({"error": "Trip not found"}), 404
+            
+        # Check authorization
+        if trip["owner_id"] != str(user['_id']) and str(user['_id']) not in trip.get("collaborators", []):
+            return jsonify({"error": "Unauthorized"}), 403
+            
+        return update_trip(trip_id, request.json)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/trips/<trip_id>", methods=["DELETE"])
+@requires_auth
+def remove_trip(trip_id):
+    try:
+        current_user = get_current_user()
+        user = get_user_by_oauth_id(current_user['userinfo']['sub'])
+        
+        # Find trip
+        trip = trips_collection.find_one({"_id": trip_id})
+        if not trip:
+            return jsonify({"error": "Trip not found"}), 404
+            
+        # Only owner can delete
+        if trip["owner_id"] != str(user['_id']):
+            return jsonify({"error": "Unauthorized"}), 403
+            
+        return delete_trip(trip_id)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# test trip 
+@app.route("/test/trip", methods=["GET"])
+@requires_auth
+def test_trip_operations():
+    try:
+        # Get current user
+        current_user = get_current_user()
+        user = get_user_by_oauth_id(current_user['userinfo']['sub'])
+        user_id = str(user['_id'])
+
+        # 1. Create a trip
+        import uuid
+        trip_id = str(uuid.uuid4())
+        trip_data = {
+            "trip_id": trip_id,
+            "title": "Test Trip to Tokyo",
+            "destination": "Tokyo, Japan",
+            "start_date": "2024-07-01",
+            "end_date": "2024-07-07",
+            "owner_id": user_id
+        }
+        trip_response, status_code = create_trip(trip_data)
+        if status_code != 201:
+            return trip_response, status_code
+
+        # 2. Update the trip
+        update_data = {
+            "title": "Updated Test Trip to Tokyo",
+            "status": "planning"
+        }
+        update_response, status_code = update_trip(trip_id, update_data)
+        if status_code != 200:
+            return update_response, status_code
+
+        # 3. Fetch the trip to verify changes
+        trip = trips_collection.find_one({"_id": trip_id})
+        if not trip:
+            return jsonify({"error": "Failed to fetch updated trip"}), 500
+
+        # 4. Delete the trip
+        delete_response, status_code = delete_trip(trip_id)
+        if status_code != 200:
+            return delete_response, status_code
+
+        # 5. Verify deletion
+        deleted_trip = trips_collection.find_one({"_id": trip_id})
+        deletion_verified = deleted_trip is None
+
+        # Return test results
+        return jsonify({
+            "message": "Trip operations test completed successfully!",
+            "steps": {
+                "creation": trip_response.json,
+                "update": update_response.json,
+                "deletion": delete_response.json,
+                "deletion_verified": deletion_verified
+            },
+            "trip_data": to_json(trip)  # This shows the trip data before deletion
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(host='localhost', port=3000)

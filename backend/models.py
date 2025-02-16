@@ -53,15 +53,44 @@ def get_user_by_oauth_id(oauth_id):
 def create_trip(data):
     try:
         trip = {
+            "_id": data["trip_id"],  # Using frontend-provided UUID
             "title": data["title"],
             "destination": data["destination"],
             "start_date": data["start_date"],
             "end_date": data["end_date"],
             "owner_id": data["owner_id"],
-            "created_at": datetime.utcnow()
+            "collaborators": [],
+            "created_at": datetime.utcnow(),
+            "activities": [],
+            "lodging_id": None,
+            "travel_id": None,
+            "status": "active"
         }
         result = trips_collection.insert_one(trip)
-        return jsonify({"message": "Trip created!", "trip_id": str(result.inserted_id)}), 201
+        return jsonify({"message": "Trip created!", "trip_id": data["trip_id"]}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+def update_trip(trip_id, data):
+    try:
+        update_data = {k: v for k, v in data.items() 
+                      if k in ["title", "destination", "start_date", "end_date", "status"]}
+        result = trips_collection.update_one(
+            {"_id": trip_id},
+            {"$set": update_data}
+        )
+        if result.modified_count == 0:
+            return jsonify({"error": "Trip not found"}), 404
+        return jsonify({"message": "Trip updated successfully!"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+def delete_trip(trip_id):
+    try:
+        result = trips_collection.delete_one({"_id": trip_id})
+        if result.deleted_count == 0:
+            return jsonify({"error": "Trip not found"}), 404
+        return jsonify({"message": "Trip deleted successfully!"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

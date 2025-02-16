@@ -120,13 +120,20 @@ export default function TripEdit() {
         });
     }
 
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return null;
+    }
+
     async function saveTrip() {
         // Save the trip data to the database
         if (tripData === null) {
             return
         }
         const dbObj = {
-            "_id": tripid,
+            "trip_id": tripid,
             "title": tripData.metadata.name,
             "destination": tripData.metadata.destination,
             "start_date": tripData.metadata.start,
@@ -139,12 +146,14 @@ export default function TripEdit() {
             "travel_id" : "1",
             "status": new Date() >= tripData.metadata.start ? "active" : "past",
         };
-        console.log(dbObj);
+        const userToken = getCookie('session');
         const res = await fetch(`${import.meta.env.VITE_API_URL}/trips`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${userToken}`,
             },
+            credentials: 'include',
             body: JSON.stringify(dbObj),
         });
         const data = await res.json();

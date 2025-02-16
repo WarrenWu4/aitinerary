@@ -56,7 +56,7 @@ def create_trip(data):
         if existing_trip:
             return jsonify({"error": "Trip with this title already exists!"}), 400
         trip = {
-            "_id": data["trip_id"],  # Using frontend-provided UUID
+            "trip_id": data["trip_id"],  # Using frontend-provided UUID
             "title": data["title"],
             "destination": data["destination"],
             "start_date": data["start_date"],

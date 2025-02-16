@@ -81,7 +81,7 @@ export default function SearchLocation({ searchTerm, setSearchTerm }) {
         <div className="flex flex-col w-full relative">
             <div className="flex items-center gap-2">
                 <GrLocation className="text-[24px]" />
-                <p className="font-[Alexandria] font-medium text-[20px] leading-[24.38px] text-gray-800">Locations</p>
+                <p className="font-[Alexandria] font-medium text-[20px] leading-[24.38px] text-gray-800">Location</p>
             </div>
             <input
                 type="text"

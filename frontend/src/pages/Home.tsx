@@ -1,16 +1,34 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import Navbar from "../components/Navbar";
 import PageContainer from "../components/PageContainer";
 import SearchLocation from "../components/SearchLocation";
 import DatePicker from "../components/DatePicker";
 import Hero from "../components/Hero";
 import ScrollPrompt from "../components/ScrollPrompt";
+import dayjs from 'dayjs';
 
 export default function Home() {
     const [searchTerm, setSearchTerm] = useState("");
-    const [date, setDate] = useState("");
+    const [dateRange, setDateRange] = useState([null, null]);
     const navigate = useNavigate();
+    const { user } = useAuth();
+
+    const handlePlanClick = () => {
+        if (!user) {
+            navigate("/SignIn");
+            return;
+        }
+        const tripData = {
+            location: searchTerm,
+            startDate: dateRange[0] ? dayjs(dateRange[0]).format('YYYY-MM-DD') : null,
+            endDate: dateRange[1] ? dayjs(dateRange[1]).format('YYYY-MM-DD') : null
+        };
+        navigate(`/trips/${user._id}/new`, { 
+            state: { tripData }
+        });
+    };
 
     return (
         <PageContainer>
@@ -23,11 +41,12 @@ export default function Home() {
                         
                         <div className="h-12 w-[1px] bg-gray-200 hidden lg:block"></div>
                         
-                        <DatePicker date={date} setDate={setDate} />
+                        <DatePicker date={dateRange} setDate={setDateRange} />
                         
                         <button 
-                            className="bg-[#E3D1FF] text-black font-semibold px-6 py-2 rounded-lg"
-                            onClick={() => navigate("/SignIn")}
+                            className="bg-[#E3D1FF] text-black font-semibold px-6 py-2 rounded-lg disabled:opacity-50"
+                            onClick={handlePlanClick}
+                            disabled={!searchTerm || !dateRange[0] || !dateRange[1]}
                         >
                             Plan
                         </button>

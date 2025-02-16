@@ -4,8 +4,11 @@ import { useState, useEffect } from 'react';
 import { EventData, EventTypes, TripData } from '../types';
 import { FaPlus } from 'react-icons/fa';
 import filterEvents from '../lib/filterEvents';
+import { useLocation } from 'react-router-dom';
 
 export default function TripEdit() {
+    const location = useLocation();
+    const initialTripData = location.state?.tripData;
 
     const [tripData, setTripData] = useState<TripData | null>(null);
     const [dropDownOpen, setDropDownOpen] = useState<boolean>(false);
@@ -19,33 +22,48 @@ export default function TripEdit() {
     });
 
     useEffect(() => {
-
         async function fetchData() {
-            console.log(tripData);
-            setTripData({
-                metadata: {
-                    tripid: '1',
-                    name: 'Trip 1',
-                    start: new Date(),
-                    end: new Date(),
-                    destination: 'San Francisco',
-                    collaborators: ["user1", "user2"],
-                },
-                budget: [1000],
-                events: [{
-                    type: EventTypes.flight,
-                    title: 'Flight 1',
-                    description: 'Description 1',
-                    startTime: new Date(),
-                    endTime: new Date(),
-                    people: ['user1', 'user2'],
-                }],
-            });
+            // If we have initial trip data, use it to create the trip
+            if (initialTripData) {
+                setTripData({
+                    metadata: {
+                        tripid: 'new',
+                        name: `Trip to ${initialTripData.location}`,
+                        start: new Date(initialTripData.startDate),
+                        end: new Date(initialTripData.endDate),
+                        destination: initialTripData.location,
+                        collaborators: [],
+                    },
+                    budget: [],
+                    events: [],
+                });
+            } else {
+                // Your existing fetchData logic for editing existing trips
+                console.log(tripData);
+                setTripData({
+                    metadata: {
+                        tripid: '1',
+                        name: 'Trip 1',
+                        start: new Date(),
+                        end: new Date(),
+                        destination: 'San Francisco',
+                        collaborators: ["user1", "user2"],
+                    },
+                    budget: [1000],
+                    events: [{
+                        type: EventTypes.flight,
+                        title: 'Flight 1',
+                        description: 'Description 1',
+                        startTime: new Date(),
+                        endTime: new Date(),
+                        people: ['user1', 'user2'],
+                    }],
+                });
+            }
         }
 
         fetchData();
-
-    }, [])
+    }, [initialTripData]);
 
     if (tripData === null) {
         return (

@@ -122,7 +122,7 @@ export default function TripTable() {
         <PageContainer>
             <Navbar/>
 
-            <div className="mt-12">
+            <div className="">
                 <button type="button" onClick={handlePlanClick} className={`mt-16 px-4 py-2 rounded-md bg-black text-white font-bold`} to={`/trips/${uid}/${crypto.randomUUID().toString()}/edit`}>
                     Create New Trip
                 </button>

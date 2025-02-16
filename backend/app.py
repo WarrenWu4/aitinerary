@@ -261,6 +261,18 @@ def remove_trip(trip_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/activity/create", methods=["POST"])
+@requires_auth
+def better_add_activity():
+    try:
+        current_user = get_current_user()
+        user = get_user_by_oauth_id(current_user['userinfo']['sub'])
+        activity_data = request.json
+        activity_data['owner_id'] = str(user['_id'])
+        return create_activity(activity_data["activity_id"],activity_data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # test trip 
 @app.route("/test/trip", methods=["GET"])
 @requires_auth

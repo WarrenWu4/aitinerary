@@ -14,6 +14,7 @@ export default function TripEdit() {
     const { uid, tripid } = useParams();
     const initialTripData = location.state?.tripData;
     const [tripData, setTripData] = useState<TripData | null>(null);
+    const [activityIds, setActivityIds] = useState<string[]>([]);
     const [dropDownOpen, setDropDownOpen] = useState<boolean>(false);
     const [newEvent, setNewEvent] = useState<EventData>({
         type: EventTypes.flight,
@@ -85,7 +86,6 @@ export default function TripEdit() {
                         destination: 'San Francisco',
                         collaborators: ["user1", "user2"],
                     },
-                    budget: [1000],
                     events: [{
                         type: EventTypes.flight,
                         title: 'Flight 1',
@@ -120,7 +120,7 @@ export default function TripEdit() {
         setNewEvent({...newEvent, [e.target.name]: e.target.value});
     }
 
-    function createEvent() {
+    async function createEvent() {
         // Add the new event to the trip data
         if (tripData === null) {
             return;
@@ -130,6 +130,57 @@ export default function TripEdit() {
             ...tripData,
             events: [...tripData.events, newEvent]
         });
+        const newActivityId = crypto.randomUUID().toString();
+        const userToken = getCookie('session');
+        // save activity to backend
+        const r = await fetch(`${import.meta.env.VITE_API_URL}/activity/create`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${userToken}`,
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                "activity_id": newActivityId,
+                "icon": String(newEvent.type.icon),
+                "color": newEvent.type.color,
+                "title": newEvent.title,
+                "description": newEvent.description,
+                "start_time": newEvent.startTime,
+                "end_time": newEvent.endTime,
+                "people": newEvent.people,
+            }),
+        });
+        const d = await r.json();
+        console.log(d);
+        // shit is broken asf on the backend not on me:))
+        const dbObj = {
+            "trip_id": tripid,
+            "title": tripData.metadata.name,
+            "destination": tripData.metadata.destination,
+            "start_date": tripData.metadata.start,
+            "end_date": tripData.metadata.end,
+            "owner_id": uid,
+            "collaborators": tripData.metadata.collaborators,
+            "created_at": "", // handled in backend
+            "activities": [...activityIds, newActivityId],
+            "lodging_id": "1",
+            "travel_id" : "1",
+            "status": new Date() >= tripData.metadata.start ? "active" : "past",
+        };
+        setActivityIds([...activityIds, newActivityId])
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/trips/${tripid}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${userToken}`,
+            },
+            credentials: 'include',
+            body: JSON.stringify(dbObj),
+        });
+        const data = await res.json();
+        console.log(data);
+        // update backend with new activities
         // Reset the new event form
         setNewEvent({
             type: EventTypes.flight,
@@ -163,7 +214,7 @@ export default function TripEdit() {
                 "owner_id": uid,
                 "collaborators": tripData.metadata.collaborators,
                 "created_at": "", // handled in backend
-                "activities": tripData.events,
+                "activities": activityIds,
                 "lodging_id": "1",
                 "travel_id" : "1",
                 "status": new Date() >= tripData.metadata.start ? "active" : "past",

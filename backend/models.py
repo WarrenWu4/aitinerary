@@ -1,5 +1,5 @@
 from bson import ObjectId
-from db import users_collection, trips_collection, days_collection, activities_collection
+from db import users_collection, trips_collection, days_collection, activities_collection, activities_collection
 from flask import jsonify
 from datetime import datetime
 
@@ -108,16 +108,17 @@ def create_day(trip_id, data):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-def create_activity(day_id, data):
+def create_activity(activity_id, data):
     try:
         activity = {
-            "day_id": day_id,
+            "activity_id": activity_id,
+            "icon": data["icon"],
+            "color": data["color"],
             "title": data["title"],
-            "location": data["location"],
-            "time": data["time"],
-            "duration": data["duration"],
-            "reservation_link": data["reservation_link"],
-            "added_by": data["added_by"]
+            "description": data["description"],
+            "start_time": data["start_time"],
+            "end_time": data["end_time"],
+            "people": data["people"],
         }
         result = activities_collection.insert_one(activity)
         return jsonify({"message": "Activity added!", "activity_id": str(result.inserted_id)}), 201

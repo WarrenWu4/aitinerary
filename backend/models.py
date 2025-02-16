@@ -52,6 +52,9 @@ def get_user_by_oauth_id(oauth_id):
 
 def create_trip(data):
     try:
+        existing_trip = trips_collection.find_one({"title": data["title"], "owner_id": data["owner_id"]})
+        if existing_trip:
+            return jsonify({"error": "Trip with this title already exists!"}), 400
         trip = {
             "_id": data["trip_id"],  # Using frontend-provided UUID
             "title": data["title"],

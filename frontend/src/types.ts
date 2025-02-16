@@ -44,3 +44,12 @@ export interface EventData {
     endTime: Date | null;
     people: string[];
 }
+
+export interface ScrapbookEntry {
+    id: string;
+    tripId: string;
+    imageUrl: string;
+    caption: string;
+    uploadedBy: string;
+    createdAt: Date;
+}

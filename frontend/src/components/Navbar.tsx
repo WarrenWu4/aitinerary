@@ -45,7 +45,7 @@ export default function Navbar() {
                             My Trips 
                         </NavLink>
                         <NavLink
-                            to={`/scrapbook/${user._id}`}
+                            to={`/scrapbooks/${user._id}`}
                             className={({isActive}) => 
                                 isActive ? "font-bold text-black" : ""
                             }

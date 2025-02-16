@@ -10,6 +10,9 @@ from models import (
 )
 from bson import ObjectId
 from auth import requires_auth, get_current_user, get_user_data
+from scrapbook import create_scrapbook_entry, get_scrapbook_entries, can_access_scrapbook
+from storage import upload_file
+from datetime import datetime
 
 app = Flask(__name__)
 # Enable CORS for all routes
@@ -458,6 +461,63 @@ def get_activity(activity_id):
         if not activity:
             return jsonify({"error": "Activity not found"}), 404
         return jsonify(to_json(activity)), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/trips/<trip_id>/scrapbook", methods=["GET"])
+@requires_auth
+def get_trip_scrapbook(trip_id):
+    try:
+        current_user = get_current_user()
+        user = get_user_by_oauth_id(current_user['userinfo']['sub'])
+        
+        if not can_access_scrapbook(trip_id, str(user['_id'])):
+            return jsonify({"error": "Unauthorized"}), 403
+            
+        entries = get_scrapbook_entries(trip_id)
+        return jsonify({"entries": entries}), 200
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/trips/<trip_id>/scrapbook/upload", methods=["POST"])
+@requires_auth
+def upload_scrapbook_entry(trip_id):
+    try:
+        if 'image' not in request.files:
+            return jsonify({"error": "No image file provided"}), 400
+            
+        current_user = get_current_user()
+        user = get_user_by_oauth_id(current_user['userinfo']['sub'])
+        
+        if not can_access_scrapbook(trip_id, str(user['_id'])):
+            return jsonify({"error": "Unauthorized"}), 403
+            
+        file = request.files['image']
+        caption = request.form.get('caption', '')
+        
+        image_url = upload_file(file)
+        if not image_url:
+            return jsonify({"error": "Failed to upload image"}), 500
+            
+        entry_id = create_scrapbook_entry(
+            trip_id=trip_id,
+            image_url=image_url,
+            caption=caption,
+            user_id=str(user['_id'])
+        )
+        
+        entry = {
+            "id": entry_id,
+            "tripId": trip_id,
+            "imageUrl": image_url,
+            "caption": caption,
+            "uploadedBy": user['name'],
+            "createdAt": datetime.utcnow().isoformat()
+        }
+        
+        return jsonify({"message": "Entry created successfully", "entry": entry}), 201
+        
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

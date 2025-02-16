@@ -13,6 +13,7 @@ try:
     trips_collection = db["trips"]
     days_collection = db["days"]
     activities_collection = db["activities"]
+    scrapbook_collection = db["scrapbook"]
 
     print("✅ Connected to MongoDB!")
 except Exception as e:

@@ -5,7 +5,7 @@ export default function filterEvents(events: EventData[], filters: EventType[]) 
     let filteredEvents: EventData[] = [];
     for (let event of events) {
         for (let filter of filters) {
-            if (event.type.icon === filter.icon && event.type.color === filter.color) {
+            if (event.type.color === filter.color) {
                 filteredEvents.push(event);
             }
         }

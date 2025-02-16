@@ -425,7 +425,7 @@ export default function TripEdit() {
                                 </button>
                             </div>
                             <div className="space-y-4">
-                                {filterEventsByTypes(tripData.events, [EventTypes.flight, EventTypes.drive]).map((event, idx) => (
+                                {filterEvents(tripData.events, [EventTypes.flight, EventTypes.drive]).map((event, idx) => (
                                     <div key={idx} className="flex items-start gap-x-4 p-4 border rounded-lg">
                                         <div className="w-24 text-sm text-gray-600">
                                             {dayjs(event.startTime).format('MMM D, h:mm A')}
@@ -456,7 +456,7 @@ export default function TripEdit() {
                                 </button>
                             </div>
                             <div className="space-y-4">
-                                {filterEventsByTypes(tripData.events, [EventTypes.checkin, EventTypes.checkout]).map((event, idx) => (
+                                {filterEvents(tripData.events, [EventTypes.checkin, EventTypes.checkout]).map((event, idx) => (
                                     <div key={idx} className="flex items-start gap-x-4 p-4 border rounded-lg">
                                         <div className="w-24 text-sm text-gray-600">
                                             {dayjs(event.startTime).format('MMM D, h:mm A')}
@@ -487,7 +487,7 @@ export default function TripEdit() {
                                 </button>
                             </div>
                             <div className="space-y-4">
-                                {filterEventsByTypes(tripData.events, [EventTypes.dining, EventTypes.entertainment, EventTypes.shopping]).map((event, idx) => (
+                                {filterEvents(tripData.events, [EventTypes.dining, EventTypes.entertainment, EventTypes.shopping]).map((event, idx) => (
                                     <div key={idx} className="flex items-start gap-x-4 p-4 border rounded-lg">
                                         <div className="w-24 text-sm text-gray-600">
                                             {dayjs(event.startTime).format('MMM D, h:mm A')}

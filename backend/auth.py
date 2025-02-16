@@ -5,6 +5,7 @@ from urllib.parse import quote_plus, urlencode
 from authlib.integrations.flask_client import OAuth
 from dotenv import find_dotenv, load_dotenv
 from flask import Flask, redirect, render_template, session, url_for
+import auth0
 
 ENV_FILE = find_dotenv()
 if ENV_FILE:
@@ -36,6 +37,12 @@ def callback():
     token = oauth.auth0.authorize_access_token()
     session["user"] = token
     return redirect("/")
+
+def get_email():
+    if session.get("user"):
+        email = auth0.users
+        return session["user"]["id_token"]["email"]
+    return None
 
 def login():
     return oauth.auth0.authorize_redirect(

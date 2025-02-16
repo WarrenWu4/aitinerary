@@ -7,6 +7,7 @@ import os
 from authlib.integrations.flask_client import OAuth
 from dotenv import find_dotenv, load_dotenv
 from flask import Flask, redirect, render_template, session, url_for
+from models import get_user_by_oauth_id
 
 load_dotenv()
 
@@ -59,10 +60,11 @@ def callback():
     create_or_update_user(user_data)
     return redirect("/")
 
-def get_email():
-    if session.get("user"):
-        email = auth0.users
-        return session["user"]["id_token"]["email"]
+def get_user_data():
+    tmp_user = session.get("user")
+    if tmp_user:
+        if tmp_user.get("userinfo"):
+            return get_user_by_oauth_id(tmp_user["userinfo"]["sub"])
     return None
 
 def login():

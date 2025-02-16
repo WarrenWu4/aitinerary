@@ -402,7 +402,7 @@ export default function TripEdit() {
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-gray-600">Travelers</span>
-                                        <span className="font-medium">{tripData.metadata.collaborators.length}</span>
+                                        <span className="font-medium">{1+tripData.metadata.collaborators.length}</span>
                                     </div>
                                 </div>
                             </div>
@@ -597,7 +597,7 @@ export default function TripEdit() {
                                 <span>{dayjs(tripData.metadata.start).format('MMM D')} - {dayjs(tripData.metadata.end).format('MMM D, YYYY')}</span>
                             </div>
                             <div className="flex items-center gap-x-2">
-                                <span>{tripData.metadata.collaborators.length} travelers</span>
+                                <span>{1+tripData.metadata.collaborators.length} travelers</span>
                             </div>
                         </div>
                     </div>

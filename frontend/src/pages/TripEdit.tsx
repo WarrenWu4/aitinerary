@@ -32,39 +32,51 @@ export default function TripEdit() {
         "entertainment": EventTypes.entertainment,
         "shopping": EventTypes.shopping,
     }
-    const [dateRange, setDateRange] = useState([null, null]);
+    const [dateRange, setDateRange] = useState([
+        dayjs(new Date()),
+        dayjs(new Date()).add(7, 'day')
+    ]);
     const [isEditingTitle, setIsEditingTitle] = useState(false);
     const [tempTitle, setTempTitle] = useState('');
     const navigate = useNavigate();
+    const [activeTab, setActiveTab] = useState('Overview');
 
     useEffect(() => {   
         if (dateRange[0] && dateRange[1] && tripData) {
-            tripData.metadata.start = dayjs(dateRange[0]).toDate();
-            tripData.metadata.end = dayjs(dateRange[1]).toDate();
-            console.log(tripData);
+            setTripData({
+                ...tripData,
+                metadata: {
+                    ...tripData.metadata,
+                    start: dateRange[0].toDate(),
+                    end: dateRange[1].toDate(),
+                }
+            });
         }
     }, [dateRange]);
 
     useEffect(() => {
         async function fetchData() {
-            // If we have initial trip data, use it to create the trip
             if (initialTripData) {
                 setTripData({
                     metadata: {
                         tripid: 'new',
                         name: `Trip to ${initialTripData.location}`,
-                        start: new Date(initialTripData.startDate),
-                        end: new Date(initialTripData.endDate),
+                        start: dayjs(initialTripData.startDate).toDate(),
+                        end: dayjs(initialTripData.endDate).toDate(),
                         destination: initialTripData.location,
                         collaborators: [],
                     },
                     budget: [],
                     events: [],
                 });
+                // Set initial date range based on trip dates
+                setDateRange([
+                    dayjs(initialTripData.startDate),
+                    dayjs(initialTripData.endDate)
+                ]);
             } else {
                 // Your existing fetchData logic for editing existing trips
-                console.log(tripData);
-                setTripData({
+                const existingTrip = {
                     metadata: {
                         tripid: '1',
                         name: 'Trip 1',
@@ -82,7 +94,13 @@ export default function TripEdit() {
                         endTime: new Date(),
                         people: ['user1', 'user2'],
                     }],
-                });
+                };
+                setTripData(existingTrip);
+                // Set initial date range based on existing trip dates
+                setDateRange([
+                    dayjs(existingTrip.metadata.start),
+                    dayjs(existingTrip.metadata.end)
+                ]);
             }
         }
 
@@ -190,157 +208,292 @@ export default function TripEdit() {
         setIsEditingTitle(false);
     };
 
+    const renderTabContent = () => {
+        // Helper function to filter events
+        const filterEventsByTypes = (events: EventData[], types?: EventTypes[]) => {
+            if (!types) return events;
+            return events.filter(event => types.includes(event.type));
+        };
+
+        switch (activeTab) {
+            case 'Overview':
+                return (
+                    <div className="grid grid-cols-3 gap-8">
+                        {/* Left column - Timeline */}
+                        <div className="col-span-2 space-y-8">
+                            {/* Location Editor */}
+                            <div className='bg-white shadow-sm rounded-xl p-6 border border-gray-200'>
+                                <h3 className="font-alex font-bold text-2xl mb-4">Location</h3>
+                                <LocationEdits
+                                    location={tripData.metadata.destination}
+                                    setLocation={(location) => {
+                                        setTripData({
+                                            ...tripData,
+                                            metadata: {
+                                                ...tripData.metadata,
+                                                destination: location
+                                            }
+                                        });
+                                    }}
+                                />
+                            </div>
+
+                            {/* Date Range Selector */}
+                            <div className='bg-white shadow-sm rounded-xl p-6 border border-gray-200'>
+                                <h3 className="font-alex font-bold text-2xl mb-4">Trip Dates</h3>
+                                <DatePicker 
+                                    date={dateRange} 
+                                    setDate={(newDateRange) => {
+                                        if (newDateRange[0] && newDateRange[1]) {
+                                            setDateRange([
+                                                dayjs(newDateRange[0]),
+                                                dayjs(newDateRange[1])
+                                            ]);
+                                        }
+                                    }}
+                                />
+                            </div>
+
+                            {/* Timeline */}
+                            <div className='bg-white shadow-sm rounded-xl p-6 border border-gray-200'>
+                                <h3 className="font-alex font-bold text-2xl mb-6">Trip Timeline</h3>
+                                <div className="space-y-4">
+                                    {tripData.events.sort((a, b) => 
+                                        new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+                                    ).map((event, idx) => (
+                                        <div key={idx} className="flex items-start gap-x-4 p-4 hover:bg-gray-50 rounded-lg transition-colors">
+                                            <div className="w-24 text-sm text-gray-600">
+                                                {dayjs(event.startTime).format('MMM D, h:mm A')}
+                                            </div>
+                                            <div>
+                                                <div className="font-medium">{event.title}</div>
+                                                <div className="text-sm text-gray-600">{event.description}</div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Right column - Stats & Actions */}
+                        <div className="space-y-6">
+                            <div className='bg-white shadow-sm rounded-xl p-6 border border-gray-200'>
+                                <h3 className="font-alex font-bold text-xl mb-4">Quick Actions</h3>
+                                <div className="space-y-3">
+                                    <button 
+                                        onClick={() => setDropDownOpen(true)}
+                                        className='w-full font-alex px-4 py-2 rounded-lg text-black bg-[#E3D1FF] hover:bg-[#E3D1FF]/80 transition-colors flex items-center justify-center gap-x-2'
+                                    >
+                                        <FaPlus className="text-sm"/>
+                                        <span>Add Event</span>
+                                    </button>
+                                    <button 
+                                        onClick={saveTrip}
+                                        className='w-full font-alex px-4 py-2 rounded-lg text-white bg-black hover:bg-black/80 transition-colors'
+                                    >
+                                        Save Trip
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className='bg-white shadow-sm rounded-xl p-6 border border-gray-200'>
+                                <h3 className="font-alex font-bold text-xl mb-4">Trip Stats</h3>
+                                <div className="space-y-3 text-sm">
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Duration</span>
+                                        <span className="font-medium">
+                                            {dayjs(tripData.metadata.end).diff(tripData.metadata.start, 'day')} days
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Activities</span>
+                                        <span className="font-medium">{tripData.events.length}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Travelers</span>
+                                        <span className="font-medium">{tripData.metadata.collaborators.length}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            
+            case 'Transportation':
+                return (
+                    <div className="space-y-6">
+                        <div className='bg-white shadow-sm rounded-xl p-6 border border-gray-200'>
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="font-alex font-bold text-2xl">Transportation</h3>
+                                <button 
+                                    onClick={() => setDropDownOpen(true)}
+                                    className='font-alex px-4 py-2 rounded-lg text-black bg-[#E3D1FF] hover:bg-[#E3D1FF]/80 transition-colors flex items-center gap-x-2'
+                                >
+                                    <FaPlus className="text-sm"/>
+                                    <span>Add Transportation</span>
+                                </button>
+                            </div>
+                            <div className="space-y-4">
+                                {filterEventsByTypes(tripData.events, [EventTypes.flight, EventTypes.drive]).map((event, idx) => (
+                                    <div key={idx} className="flex items-start gap-x-4 p-4 border rounded-lg">
+                                        <div className="w-24 text-sm text-gray-600">
+                                            {dayjs(event.startTime).format('MMM D, h:mm A')}
+                                        </div>
+                                        <div>
+                                            <div className="font-medium">{event.title}</div>
+                                            <div className="text-sm text-gray-600">{event.description}</div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                );
+
+            case 'Lodging':
+                return (
+                    <div className="space-y-6">
+                        <div className='bg-white shadow-sm rounded-xl p-6 border border-gray-200'>
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="font-alex font-bold text-2xl">Lodging</h3>
+                                <button 
+                                    onClick={() => setDropDownOpen(true)}
+                                    className='font-alex px-4 py-2 rounded-lg text-black bg-[#E3D1FF] hover:bg-[#E3D1FF]/80 transition-colors flex items-center gap-x-2'
+                                >
+                                    <FaPlus className="text-sm"/>
+                                    <span>Add Lodging</span>
+                                </button>
+                            </div>
+                            <div className="space-y-4">
+                                {filterEventsByTypes(tripData.events, [EventTypes.checkin, EventTypes.checkout]).map((event, idx) => (
+                                    <div key={idx} className="flex items-start gap-x-4 p-4 border rounded-lg">
+                                        <div className="w-24 text-sm text-gray-600">
+                                            {dayjs(event.startTime).format('MMM D, h:mm A')}
+                                        </div>
+                                        <div>
+                                            <div className="font-medium">{event.title}</div>
+                                            <div className="text-sm text-gray-600">{event.description}</div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                );
+
+            case 'Activities':
+                return (
+                    <div className="space-y-6">
+                        <div className='bg-white shadow-sm rounded-xl p-6 border border-gray-200'>
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="font-alex font-bold text-2xl">Activities</h3>
+                                <button 
+                                    onClick={() => setDropDownOpen(true)}
+                                    className='font-alex px-4 py-2 rounded-lg text-black bg-[#E3D1FF] hover:bg-[#E3D1FF]/80 transition-colors flex items-center gap-x-2'
+                                >
+                                    <FaPlus className="text-sm"/>
+                                    <span>Add Activity</span>
+                                </button>
+                            </div>
+                            <div className="space-y-4">
+                                {filterEventsByTypes(tripData.events, [EventTypes.dining, EventTypes.entertainment, EventTypes.shopping]).map((event, idx) => (
+                                    <div key={idx} className="flex items-start gap-x-4 p-4 border rounded-lg">
+                                        <div className="w-24 text-sm text-gray-600">
+                                            {dayjs(event.startTime).format('MMM D, h:mm A')}
+                                        </div>
+                                        <div>
+                                            <div className="font-medium">{event.title}</div>
+                                            <div className="text-sm text-gray-600">{event.description}</div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                );
+        }
+    };
+
     return (
         <PageContainer>
             <Navbar/>
             
-            <div className='mt-8 flex items-center gap-x-2'>
-                {isEditingTitle ? (
-                    <input 
-                        className="font-bold text-4xl font-alex px-2 py-1 border-b-2 border-black/60 focus:outline-none"
-                        value={tempTitle}
-                        onChange={(e) => setTempTitle(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                                saveTitleChanges();
-                            } else if (e.key === 'Escape') {
-                                setIsEditingTitle(false);
-                            }
-                        }}
-                        onBlur={saveTitleChanges}
-                        autoFocus
-                    />
-                ) : (
-                    <div 
-                        className="flex items-center gap-x-2 cursor-pointer group"
-                        onClick={handleTitleEdit}
-                    >
-                        <h1 className="font-bold text-4xl font-alex group-hover:text-gray-700">
-                            {tripData.metadata.name}
-                        </h1>
-                        <FaPencilAlt className="text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </div>
-                )}
-            </div>
-
-            <div className="mt-8 space-y-8 max-w-4xl mx-auto">
-                <div className='bg-white shadow-lg rounded-xl p-6 border border-gray-200'>
-                    <h3 className="font-alex font-bold text-xl mb-4">Destination</h3>
-                    <LocationEdits
-                        location={tripData.metadata.destination}
-                        setLocation={(location) => tripData.metadata.destination = location}
-                    />
-                </div>
-
-                <div className='bg-white shadow-lg rounded-xl p-6 border border-gray-200'>
-                    <h3 className="font-alex font-bold text-xl mb-4">Trip Dates</h3>
-                    <DatePicker date={dateRange} setDate={setDateRange} />
-                </div>
-
-                <div className='bg-white shadow-lg rounded-xl p-6 border border-gray-200'>
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-alex font-bold text-xl">Lodging</h3>
-                        <button 
-                            type="button"
-                            onClick={() => console.log('add lodging')}
-                            className='font-alex flex items-center gap-x-2 px-4 py-2 rounded-md text-black bg-[#E3D1FF] hover:bg-[#E3D1FF]/80 transition-colors'
-                        >
-                            Add Lodging
-                            <FaPlus/>
-                        </button>
-                    </div>
-                    <div className="space-y-2">
-                        {filterEvents(tripData.events, [EventTypes.checkin, EventTypes.checkout]).map((event: EventData, idx: number) => (
-                            <div key={idx} className="p-3 border rounded-lg hover:bg-gray-50">
-                                {event.title}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                <div className='bg-white shadow-lg rounded-xl p-6 border border-gray-200'>
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-alex font-bold text-xl">Transportation</h3>
-                        <button 
-                            type="button"
-                            onClick={() => console.log('add transportation')}
-                            className='font-alex flex items-center gap-x-2 px-4 py-2 rounded-md text-black bg-[#E3D1FF] hover:bg-[#E3D1FF]/80 transition-colors'
-                        >
-                            Add Transportation
-                            <FaPlus/>
-                        </button>
-                    </div>
-                    <div className="space-y-2">
-                        {filterEvents(tripData.events, [EventTypes.flight, EventTypes.drive]).map((event: EventData, idx: number) => (
-                            <div key={idx} className="p-3 border rounded-lg hover:bg-gray-50">
-                                <div className="font-semibold">{event.title}</div>
-                                <div className="text-sm text-gray-600">
-                                    {event.startTime ? new Date(event.startTime).toLocaleString() : ""}
-                                    {event.endTime ? ` - ${new Date(event.endTime).toLocaleString()}` : ""}
+            {/* Hero section with larger, more impactful design */}
+            <div className='relative py-16 bg-gradient-to-b from-[#E3D1FF]/30 to-transparent'>
+                <div className='max-w-5xl mx-auto px-6'>
+                    <div className='space-y-4'>
+                        {/* Title section */}
+                        <div className='flex items-center gap-x-2'>
+                            {isEditingTitle ? (
+                                <input 
+                                    className="font-bold text-5xl font-alex px-2 py-1 border-b-2 border-black/60 focus:outline-none bg-transparent w-full"
+                                    value={tempTitle}
+                                    onChange={(e) => setTempTitle(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') saveTitleChanges();
+                                        if (e.key === 'Escape') setIsEditingTitle(false);
+                                    }}
+                                    onBlur={saveTitleChanges}
+                                    autoFocus
+                                />
+                            ) : (
+                                <div 
+                                    className="flex items-center gap-x-2 cursor-pointer group"
+                                    onClick={handleTitleEdit}
+                                >
+                                    <h1 className="font-bold text-5xl font-alex group-hover:text-gray-700">
+                                        {tripData.metadata.name}
+                                    </h1>
+                                    <FaPencilAlt className="text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                                 </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                <div className='bg-white shadow-lg rounded-xl p-6 border border-gray-200'>
-                    <h3 className="font-alex font-bold text-xl mb-4">Activities</h3>
-                    
-                    <div className="space-y-6">
-                        <div>
-                            <h5 className="font-alex font-bold text-lg mb-2">Food + Drinks</h5>
-                            <div className="space-y-2">
-                                {filterEvents(tripData.events, [EventTypes.dining]).map((event: EventData, idx: number) => (
-                                    <div key={idx} className="p-3 border rounded-lg hover:bg-gray-50">
-                                        {event.title}
-                                    </div>
-                                ))}
-                            </div>
+                            )}
                         </div>
-
-                        <div>
-                            <h5 className="font-alex font-bold text-lg mb-2">Entertainment</h5>
-                            <div className="space-y-2">
-                                {filterEvents(tripData.events, [EventTypes.entertainment]).map((event: EventData, idx: number) => (
-                                    <div key={idx} className="p-3 border rounded-lg hover:bg-gray-50">
-                                        {event.title}
-                                    </div>
-                                ))}
+                        
+                        {/* Quick summary stats */}
+                        <div className="flex gap-x-6 text-gray-600">
+                            <div className="flex items-center gap-x-2">
+                                <span className="font-medium">{tripData.metadata.destination}</span>
                             </div>
-                        </div>
-
-                        <div>
-                            <h5 className="font-alex font-bold text-lg mb-2">Shopping</h5>
-                            <div className="space-y-2">
-                                {filterEvents(tripData.events, [EventTypes.shopping]).map((event: EventData, idx:number) => (
-                                    <div key={idx} className="p-3 border rounded-lg hover:bg-gray-50">
-                                        {event.title}
-                                    </div>
-                                ))}
+                            <div className="flex items-center gap-x-2">
+                                <span>{dayjs(tripData.metadata.start).format('MMM D')} - {dayjs(tripData.metadata.end).format('MMM D, YYYY')}</span>
+                            </div>
+                            <div className="flex items-center gap-x-2">
+                                <span>{tripData.metadata.collaborators.length} travelers</span>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <div className='flex gap-x-4 justify-end'>
-                    <button 
-                        onClick={() => setDropDownOpen(true)}
-                        className='font-alex px-6 py-2 rounded-lg text-black bg-[#E3D1FF] hover:bg-[#E3D1FF]/80 transition-colors'
-                    >
-                        Add Event
-                    </button>
-
-                    <button 
-                        onClick={saveTrip}
-                        className='font-alex px-6 py-2 rounded-lg text-black bg-[#E3D1FF] hover:bg-[#E3D1FF]/80 transition-colors'
-                    >
-                        Save Trip
-                    </button>
                 </div>
             </div>
 
-            <div className={`fixed inset-0 bg-black/20 ${dropDownOpen ? "flex" : "hidden"}`}>
-                <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-6 bg-white border-2 border-black/60 rounded-md w-[90%] max-w-md`}>
+            {/* Main content with tabs */}
+            <div className="max-w-5xl mx-auto px-6 py-8">
+                {/* Navigation Tabs */}
+                <div className="border-b border-gray-200 mb-8">
+                    <nav className="-mb-px flex space-x-8">
+                        {['Overview', 'Transportation', 'Lodging', 'Activities'].map((tab) => (
+                            <button
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
+                                className={`
+                                    font-alex text-lg pb-4 px-1 border-b-2 
+                                    ${tab === activeTab 
+                                        ? 'border-[#E3D1FF] text-black font-medium' 
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}
+                                `}
+                            >
+                                {tab}
+                            </button>
+                        ))}
+                    </nav>
+                </div>
+
+                {/* Tab Content */}
+                {renderTabContent()}
+            </div>
+
+            {/* Modal for adding events */}
+            <div className={`fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity ${dropDownOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
+                <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-8 bg-white border border-gray-200 rounded-xl w-[90%] max-w-md shadow-2xl`}>
                     <div className='flex items-center justify-between gap-x-4 mb-4'>
                         <h2 className="text-xl font-semibold">Create Event</h2>
                         <button 
@@ -361,13 +514,41 @@ export default function TripEdit() {
                             ))}
                         </select>
                     </div>
-                    <input name="title" placeholder="Event Title" className="w-full p-2 border rounded mb-4" onChange={handleChange} />
-                    <textarea name="description" placeholder="Description" className="w-full p-2 border rounded mb-4" onChange={handleChange} />
-                    <input name="startTime" type="datetime-local" className="w-full p-2 border rounded mb-4" onChange={handleChange} />
-                    <input name="endTime" type="datetime-local" className="w-full p-2 border rounded mb-4" onChange={handleChange} />
-                    <input name="people" placeholder="Comma-separated people" className="w-full p-2 border rounded mb-4" onChange={(e) => setNewEvent({ ...newEvent, people: e.target.value.split(",") })} />
+                    <input 
+                        name="title" 
+                        placeholder="Event Title" 
+                        className="w-full p-2 border rounded mb-4" 
+                        onChange={handleChange} 
+                    />
+                    <textarea 
+                        name="description" 
+                        placeholder="Description" 
+                        className="w-full p-2 border rounded mb-4" 
+                        onChange={handleChange} 
+                    />
+                    <input 
+                        name="startTime" 
+                        type="datetime-local" 
+                        className="w-full p-2 border rounded mb-4" 
+                        onChange={handleChange} 
+                    />
+                    <input 
+                        name="endTime" 
+                        type="datetime-local" 
+                        className="w-full p-2 border rounded mb-4" 
+                        onChange={handleChange} 
+                    />
+                    <input 
+                        name="people" 
+                        placeholder="Comma-separated people" 
+                        className="w-full p-2 border rounded mb-4" 
+                        onChange={(e) => setNewEvent({ ...newEvent, people: e.target.value.split(",") })} 
+                    />
                     <button 
-                        onClick={createEvent}
+                        onClick={() => {
+                            createEvent();
+                            setDropDownOpen(false);
+                        }}
                         className='w-full font-alex px-4 py-2 rounded-md text-white bg-black hover:bg-black/80 transition-colors'
                     >
                         Create Event

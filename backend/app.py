@@ -562,7 +562,7 @@ def retell_inbound():
 
     number = data.get("to_number")
 
-    return jsonify(retell_functions.inbound(number), 200)
+    return jsonify(retell_functions.inbound(number))
 
 
 

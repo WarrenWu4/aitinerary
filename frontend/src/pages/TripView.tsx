@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { TripData } from "../types";
 import { FaArrowRightLong } from "react-icons/fa6";
 import ScheduleView from "../components/ScheduleView";
+import { NavLink } from "react-router-dom";
 
 export default function TripTable() {
 
@@ -38,6 +39,9 @@ export default function TripTable() {
                 <div className="h-full rounded-md border-2 p-4">
                     <p className="font-bold">Up Next: </p> 
                 </div>
+                <NavLink to={`/trips/${uid}/${tripid}/edit`}>
+                    edit
+                </NavLink>
             </div>
 
             <div className="flex gap-x-4 items-center h-full mt-6">

@@ -36,6 +36,15 @@ export const EventTypes = {
     shopping: {icon: FaCheck, color: "bg-cyan-300"},
 } as const;
 
+export const EventTypes2 = {
+    // transportation
+    "IoAirplane": {icon: IoAirplane, color: "bg-blue-300"},
+    "FaCarSide": {icon: FaCarSide, color: "bg-purple-300"},
+    // lodging
+    "FaCheck": {icon: FaCheck, color: "bg-green-300"},
+    "FaTimes": {icon: FaTimes, color: "bg-red-300"},
+} as const;
+
 export interface EventData {
     type: EventType;
     title: string;

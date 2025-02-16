@@ -234,7 +234,7 @@ export default function TripEdit() {
                 "activities": activityIds,
                 "lodging_id": "1",
                 "travel_id": "1",
-                "status": new Date() >= tripData.metadata.start ? "active" : "past",
+                "status": new Date() >= tripData.metadata.start ? "past" : "active",
             };
             const userToken = getCookie('session');
             

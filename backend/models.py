@@ -1,6 +1,7 @@
 from bson import ObjectId
 from db import users_collection, trips_collection, days_collection, activities_collection
 from flask import jsonify
+from datetime import datetime
 
 def to_json(doc):
     if "_id" in doc:
@@ -30,6 +31,25 @@ def create_user(data):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+def create_or_update_user(data):
+    try:
+        existing_user = users_collection.find_one({"oauth_id": data["oauth_id"]})
+        if existing_user:
+            users_collection.update_one(
+                {"oauth_id": data["oauth_id"]},
+                {"$set": data}
+            )
+            return jsonify({"message": "User updated!", "user_id": str(existing_user["_id"])}), 200
+        else:
+            result = users_collection.insert_one(data)
+            return jsonify({"message": "User created!", "user_id": str(result.inserted_id)}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+def get_user_by_oauth_id(oauth_id):
+    user = users_collection.find_one({"oauth_id": oauth_id})
+    return to_json(user) if user else None
+
 def create_trip(data):
     try:
         trip = {
@@ -37,7 +57,8 @@ def create_trip(data):
             "destination": data["destination"],
             "start_date": data["start_date"],
             "end_date": data["end_date"],
-            "owner_id": data["owner_id"]
+            "owner_id": data["owner_id"],
+            "created_at": datetime.utcnow()
         }
         result = trips_collection.insert_one(trip)
         return jsonify({"message": "Trip created!", "trip_id": str(result.inserted_id)}), 201

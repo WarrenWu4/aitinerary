@@ -564,7 +564,7 @@ def retell_inbound():
 
     return jsonify(retell_functions.inbound(number))
 
-@app.route("/retell/trips", methods=["POST"])
+# @app.route("/retell/trips", methods=["POST"])
 def user_trips_retell():
     data = request.json
 

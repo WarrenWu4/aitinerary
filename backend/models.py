@@ -50,6 +50,10 @@ def get_user_by_oauth_id(oauth_id):
     user = users_collection.find_one({"oauth_id": oauth_id})
     return to_json(user) if user else None
 
+def get_oauth_id_by_email(email):
+    user = users_collection.find_one({"email": email})
+    return to_json(user.get("oauth_id")) if user else None
+
 def create_trip(data):
     try:
         # removing this because need to overwrite existing trips anyways

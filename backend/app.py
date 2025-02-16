@@ -564,7 +564,52 @@ def retell_inbound():
 
     return jsonify(retell_functions.inbound(number))
 
+@app.route("/retell/trips", methods=["POST"])
+def user_trips_retell():
+    data = request.json
 
+    if not data:
+        return jsonify({"error": "Data is required"}), 400
+
+    oauth_id = data.get("oauth_id")
+
+    current_user = get_user_by_oauth_id(oauth_id)
+    user_id = oauth_id
+
+    try:
+        trips = list(trips_collection.find(
+            {
+                "$or": [
+                    {"owner_id": user_id},
+                    {"collaborators": user_id}
+                ]
+            },
+            {
+                "title": 1,
+                "start_date": 1,
+                "end_date": 1,
+                "destination": 1,
+                "collaborators": 1,
+                "status": 1,
+                "_id": 1
+            }
+        ))
+
+        formatted_trips = []
+        for trip in trips:
+            formatted_trips.append({
+                "tripid": str(trip["_id"]),
+                "name": trip["title"],
+                "start": trip["start_date"],
+                "end": trip["end_date"],
+                "destination": trip["destination"],
+                "collaborators": trip.get("collaborators", []),
+                "status": trip.get("status", "active")
+            })
+
+        return jsonify({"trips": formatted_trips}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(host='localhost', port=3000, debug=True)

@@ -55,18 +55,37 @@ def user_trips(user_id):
         return jsonify({"error": "Unauthorized"}), 403
         
     try:
-        trips = list(trips_collection.find({
-            "$or": [
-                {"owner_id": user_id},
-                {"collaborators": user_id}
-            ]
-        }))
+        trips = list(trips_collection.find(
+            {
+                "$or": [
+                    {"owner_id": user_id},
+                    {"collaborators": user_id}
+                ]
+            },
+            {
+                "title": 1,
+                "start_date": 1,
+                "end_date": 1,
+                "destination": 1,
+                "collaborators": 1,
+                "status": 1,
+                "_id": 1
+            }
+        ))
         
-        # Convert trips for JSON serialization
+        formatted_trips = []
         for trip in trips:
-            trip["_id"] = str(trip["_id"])
+            formatted_trips.append({
+                "tripid": str(trip["_id"]),
+                "name": trip["title"],
+                "start": trip["start_date"],
+                "end": trip["end_date"],
+                "destination": trip["destination"],
+                "collaborators": trip.get("collaborators", []),
+                "status": trip.get("status", "active")
+            })
             
-        return jsonify({"trips": trips}), 200
+        return jsonify({"trips": formatted_trips}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

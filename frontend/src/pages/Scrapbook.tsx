@@ -13,6 +13,15 @@ export default function Scrapbook() {
     const [scrapbookEntries, setScrapbookEntries] = useState<ScrapbookEntry[]>([]);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadCaption, setUploadCaption] = useState('');
+    const [groupedTrips, setGroupedTrips] = useState<{
+        current: TripInfo[],
+        upcoming: TripInfo[],
+        past: TripInfo[]
+    }>({
+        current: [],
+        upcoming: [],
+        past: []
+    });
 
     // Fetch trips the user is part of
     useEffect(() => {
@@ -35,6 +44,27 @@ export default function Scrapbook() {
         }
         fetchTrips();
     }, [uid]);
+
+    // Group trips by status
+    useEffect(() => {
+        const now = new Date();
+        const grouped = {
+            current: trips.filter(trip => 
+                trip.status === "active" && 
+                trip.start <= now && 
+                trip.end >= now
+            ),
+            upcoming: trips.filter(trip => 
+                trip.status === "active" && 
+                trip.start > now
+            ),
+            past: trips.filter(trip => 
+                trip.status !== "active" || 
+                trip.end < now
+            )
+        };
+        setGroupedTrips(grouped);
+    }, [trips]);
 
     // Fetch scrapbook entries when a trip is selected
     useEffect(() => {
@@ -86,34 +116,61 @@ export default function Scrapbook() {
         }
     };
 
+    const TripSection = ({ trips, title }: { trips: TripInfo[], title: string }) => {
+        if (trips.length === 0) return null;
+        
+        return (
+            <div className="mt-8">
+                <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex items-center gap-4 mb-4">
+                        <h2 className="font-alex text-xl">{title}</h2>
+                        <div className="flex-grow h-[1px] bg-black/20"></div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {trips.map((trip) => (
+                            <button
+                                key={trip.tripid}
+                                onClick={() => setSelectedTrip(trip.tripid)}
+                                className={`p-4 rounded-xl transition-colors ${
+                                    selectedTrip === trip.tripid 
+                                        ? 'bg-[#E3D1FF] text-black' 
+                                        : 'bg-white hover:bg-gray-100'
+                                }`}
+                            >
+                                <h3 className="font-alex text-lg mb-2">{trip.name}</h3>
+                                <p className="text-sm text-gray-600">{trip.destination}</p>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <PageContainer>
             <Navbar />
             
-            <div className="max-w-7xl mx-auto px-4 py-8">
-                <h1 className="font-alex text-4xl font-bold mb-8">Trip Scrapbook</h1>
-                
-                {/* Trip Selection */}
-                <div className="flex gap-4 mb-8 overflow-x-auto pb-4">
-                    {trips.map(trip => (
-                        <button
-                            key={trip.tripid}
-                            onClick={() => setSelectedTrip(trip.tripid)}
-                            className={`px-4 py-2 rounded-lg whitespace-nowrap ${
-                                selectedTrip === trip.tripid 
-                                    ? 'bg-[#E3D1FF] text-black' 
-                                    : 'bg-gray-100 hover:bg-gray-200'
-                            }`}
-                        >
-                            {trip.name}
-                        </button>
-                    ))}
+            {/* Hero section - reduced vertical padding */}
+            <div className='relative py-8 bg-gradient-to-b from-[#E3D1FF]/30 to-transparent'>
+                <div className='max-w-7xl mx-auto px-6'>
+                    <div className='space-y-2'>
+                        <h1 className="font-bold text-5xl font-alex">Trip Scrapbook</h1>
+                        <p className="text-gray-600">Capture and share your favorite travel moments</p>
+                    </div>
                 </div>
+            </div>
+
+            <div className="max-w-7xl mx-auto px-6 pt-4 pb-8">
+                {/* Trip Sections */}
+                <TripSection trips={groupedTrips.current} title="Current Trip" />
+                <TripSection trips={groupedTrips.upcoming} title="Upcoming Trips" />
+                <TripSection trips={groupedTrips.past} title="Past Trips" />
 
                 {selectedTrip && (
                     <>
                         {/* Upload Section */}
-                        <div className="mb-8 p-6 bg-gray-50 rounded-xl">
+                        <div className="mt-8 bg-white shadow-sm rounded-xl p-6 border border-gray-200">
                             <h2 className="font-alex text-2xl mb-4">Add to Scrapbook</h2>
                             <div className="flex gap-4">
                                 <input
@@ -121,7 +178,7 @@ export default function Scrapbook() {
                                     placeholder="Add a caption..."
                                     value={uploadCaption}
                                     onChange={(e) => setUploadCaption(e.target.value)}
-                                    className="flex-grow p-2 border rounded"
+                                    className="flex-grow p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E3D1FF]"
                                 />
                                 <input
                                     type="file"
@@ -133,7 +190,7 @@ export default function Scrapbook() {
                                 />
                                 <label
                                     htmlFor="image-upload"
-                                    className={`px-4 py-2 rounded bg-black text-white cursor-pointer ${
+                                    className={`px-6 py-3 rounded-lg font-alex text-white bg-black cursor-pointer transition-colors ${
                                         isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-black/80'
                                     }`}
                                 >
@@ -143,19 +200,23 @@ export default function Scrapbook() {
                         </div>
 
                         {/* Scrapbook Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {scrapbookEntries.map(entry => (
-                                <div key={entry.id} className="bg-white rounded-xl overflow-hidden shadow-md">
-                                    <img 
-                                        src={entry.imageUrl} 
-                                        alt={entry.caption} 
-                                        className="w-full aspect-video object-cover"
-                                    />
+                                <div key={entry.id} className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200">
+                                    <div className="aspect-video relative">
+                                        <img 
+                                            src={entry.imageUrl} 
+                                            alt={entry.caption} 
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </div>
                                     <div className="p-4">
-                                        <p className="text-gray-800 mb-2">{entry.caption}</p>
-                                        <p className="text-sm text-gray-500">
-                                            Added by {entry.uploadedBy} on {dayjs(entry.createdAt).format('MMM D, YYYY')}
-                                        </p>
+                                        <p className="text-gray-800 mb-2 font-medium">{entry.caption}</p>
+                                        <div className="flex items-center gap-x-2 text-sm text-gray-500">
+                                            <span>{entry.uploadedBy}</span>
+                                            <span>•</span>
+                                            <span>{dayjs(entry.createdAt).format('MMM D, YYYY')}</span>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
@@ -164,8 +225,14 @@ export default function Scrapbook() {
                 )}
 
                 {!selectedTrip && (
-                    <div className="text-center text-gray-500 mt-12">
-                        Select a trip to view its scrapbook
+                    <div className="text-center py-12">
+                        <div className="text-gray-500 mb-4">Select a trip to view its scrapbook</div>
+                        <NavLink
+                            to={`/trips/${uid}`}
+                            className="font-alex inline-block px-6 py-3 rounded-lg text-white bg-black hover:bg-black/80 transition-colors"
+                        >
+                            View My Trips
+                        </NavLink>
                     </div>
                 )}
             </div>

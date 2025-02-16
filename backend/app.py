@@ -556,11 +556,11 @@ def get_recommendation():
 @app.route("/retell/inbound", methods=["POST"])
 def retell_inbound():
     data = request.json
-
+    print("data is",data)
     if not data:
         return jsonify({"error": "Data is required"}), 400
 
-    number = data["number"]
+    number = data.get("number")
 
     return jsonify(retell_functions.inbound(number), 200)
 

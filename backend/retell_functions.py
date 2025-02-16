@@ -19,11 +19,13 @@ retell_key = os.getenv("RETELL_KEY")
 
 from retell import Retell
 
-retell_client = Retell(
-    api_key="YOUR_API_KEY"
-)
+# retell_client = Retell(
+#     api_key="YOUR_API_KEY"
+# )
 
 def inbound(number):
+    print("number is", number)
+
     if number.startswith("+1"):
         number = number[2:]
 

@@ -8,6 +8,7 @@ import TripEdit from "./pages/TripEdit";
 import SignIn from "./pages/SignIn";
 import { AuthProvider } from "./context/AuthContext";
 import Scrapbook from "./pages/Scrapbook";
+import About from "./pages/About";
 
 const root = document.getElementById("root");
 
@@ -16,7 +17,7 @@ ReactDOM.createRoot(root!).render(
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/about" element={<Home />} />
+        <Route path="/about" element={<About/>} />
 
         <Route path="/trips/:uid" element={<TripTable />} />
         <Route path="/trips/:uid/:tripid" element={<TripView />} />

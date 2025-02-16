@@ -53,7 +53,7 @@ def get_user_by_oauth_id(oauth_id):
 def create_trip(data):
     try:
         # removing this because need to overwrite existing trips anyways
-        existing_trip = trips_collection.find_one({"_id": ObjectId(data["trip_id"])})
+        existing_trip = trips_collection.find_one({"title": data["title"], "owner_id": data["owner_id"]})
         if existing_trip:
             trips_collection.update_one(
                 {"title": data["title"], "owner_id": data["owner_id"]},

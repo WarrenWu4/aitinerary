@@ -9,7 +9,6 @@ import { useLocation } from 'react-router-dom';
 export default function TripEdit() {
     const location = useLocation();
     const initialTripData = location.state?.tripData;
-
     const [tripData, setTripData] = useState<TripData | null>(null);
     const [dropDownOpen, setDropDownOpen] = useState<boolean>(false);
     const [newEvent, setNewEvent] = useState<EventData>({
@@ -20,6 +19,15 @@ export default function TripEdit() {
         endTime: null,
         people: [],
     });
+    let eventMappings = {
+        "flight": EventTypes.flight,
+        "drive": EventTypes.drive,
+        "checkin": EventTypes.checkin,
+        "checkout": EventTypes.checkout,
+        "dining": EventTypes.dining,
+        "entertainment": EventTypes.entertainment,
+        "shopping": EventTypes.shopping,
+    }
 
     useEffect(() => {
         async function fetchData() {
@@ -74,7 +82,29 @@ export default function TripEdit() {
     }
 
     function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+        console.log(e.target.name, e.target.value);
         setNewEvent({...newEvent, [e.target.name]: e.target.value});
+    }
+
+    function createEvent() {
+        // Add the new event to the trip data
+        if (tripData === null) {
+            return;
+        }
+        console.log(newEvent);
+        setTripData({
+            ...tripData,
+            events: [...tripData.events, newEvent]
+        });
+        // Reset the new event form
+        setNewEvent({
+            type: EventTypes.flight,
+            title: '',
+            description: '',
+            startTime: null,
+            endTime: null,
+            people: [],
+        });
     }
 
     return (
@@ -90,7 +120,11 @@ export default function TripEdit() {
             </div>
 
             <div className='mt-4'>
-                <h3 className="font-alex font-bold text-xl">Locations</h3>
+                <h3 className="font-alex font-bold text-xl">Destination</h3>
+            </div>
+
+            <div className='mt-4'>
+                <h3 className="font-alex font-bold text-xl">Trip Dates</h3>
             </div>
 
             <div className='mt-4'>
@@ -124,6 +158,8 @@ export default function TripEdit() {
                     {filterEvents(tripData.events, [EventTypes.flight, EventTypes.drive]).map((event: EventData, idx: number) => (
                         <div key={idx}>
                             {event.title}
+                            {event.startTime ? event.startTime.toString() : ""}
+                            {event.endTime ? event.endTime.toString() : ""}
                         </div>
                     ))}
                 </div>
@@ -165,13 +201,26 @@ export default function TripEdit() {
             </button>
 
             <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-4 bg-white border-2 border-black/60 rounded-md ${dropDownOpen ? "flex flex-col" : "hidden"}`}>
-                <h2 className="text-xl font-semibold mb-4">Create Event</h2>
-                      <input name="title" placeholder="Event Title" className="w-full p-2 border rounded mb-2" onChange={handleChange} />
-                      <textarea name="description" placeholder="Description" className="w-full p-2 border rounded mb-2" onChange={handleChange} />
-                      <input name="startTime" type="datetime-local" className="w-full p-2 border rounded mb-2" onChange={handleChange} />
-                      <input name="endTime" type="datetime-local" className="w-full p-2 border rounded mb-2" onChange={handleChange} />
-                      <input name="people" placeholder="Comma-separated people" className="w-full p-2 border rounded mb-2" onChange={(e) => setNewEvent({ ...newEvent, people: e.target.value.split(",") })} />
-                                
+                <div className='flex items-center justify-between gap-x-4'>
+                    <h2 className="text-xl font-semibold mb-4">Create Event</h2>
+                    <button onClick={() => setDropDownOpen(false)}>Close</button>
+                </div>
+                <div>
+                    <select name="type" onChange={(e) => setNewEvent({ ...newEvent, type: {
+                        icon: eventMappings[e.target.value].icon,
+                        color: eventMappings[e.target.value].color
+                    }})}>
+                        {Object.keys(EventTypes).map((type) => (
+                            <option key={type} value={type}>{type}</option>
+                        ))}
+                    </select>
+                </div>
+                <input name="title" placeholder="Event Title" className="w-full p-2 border rounded mb-2" onChange={handleChange} />
+                <textarea name="description" placeholder="Description" className="w-full p-2 border rounded mb-2" onChange={handleChange} />
+                <input name="startTime" type="datetime-local" className="w-full p-2 border rounded mb-2" onChange={handleChange} />
+                <input name="endTime" type="datetime-local" className="w-full p-2 border rounded mb-2" onChange={handleChange} />
+                <input name="people" placeholder="Comma-separated people" className="w-full p-2 border rounded mb-2" onChange={(e) => setNewEvent({ ...newEvent, people: e.target.value.split(",") })} />
+                <button onClick={createEvent}>Create Event</button>
             </div>
         </PageContainer>
     )

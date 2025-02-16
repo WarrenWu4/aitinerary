@@ -12,5 +12,5 @@ export function startEndDateNicer(startDate: Date, endDate: Date): string {
     const monthAbbreviations = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const startMonth = monthAbbreviations[startDate.getMonth()];
     const endMonth = monthAbbreviations[endDate.getMonth()];
-    return `${startMonth} ${startDate.getDate()}, ${startDate.getFullYear()} - ${endMonth} ${endDate.getDate()}, ${endDate.getFullYear()}`;
+    return `${startMonth} ${startDate.getDate()}, ${startDate.getFullYear()} / ${endMonth} ${endDate.getDate()}, ${endDate.getFullYear()}`;
 }

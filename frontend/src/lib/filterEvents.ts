@@ -10,6 +10,6 @@ export default function filterEvents(events: EventData[], filters: EventType[]) 
             }
         }
     }
-    filteredEvents.sort((e1, e2) => e1.startTime.getTime() - e2.startTime.getTime());
+    // filteredEvents.sort((e1, e2) => e1.startTime.getTime() - e2.startTime.getTime());
     return filteredEvents;
 }

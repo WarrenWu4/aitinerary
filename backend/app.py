@@ -16,6 +16,8 @@ from storage import upload_file
 from datetime import datetime
 import requests
 from google import genai
+from google import generativeai
+import openai
 
 app = Flask(__name__)
 # Enable CORS for all routes
@@ -594,7 +596,6 @@ def user_trips_retell():
                 "_id": 1
             }
         ))
-
         formatted_trips = []
         for trip in trips:
             formatted_trips.append({
@@ -610,6 +611,17 @@ def user_trips_retell():
         return jsonify({"trips": formatted_trips}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route("/embedding", methods=["POST"])
+def create_embedding():
+    data = request.json
+    if not data:
+        return jsonify({"error": "Data is required"}), 400
+    q = data.get("query")
+    u = data.get("user")
+    embedding = openai.Embedding.create(model="text-embedding-1")["data"][0]["embedding"]
+    return jsonify({"msg": "embedding created and stored"}), 200
+
 
 if __name__ == "__main__":
     app.run(host='localhost', port=3000, debug=True)

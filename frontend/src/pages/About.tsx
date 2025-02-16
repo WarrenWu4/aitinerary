@@ -1,19 +1,22 @@
 import PageContainer from "../components/PageContainer"
 import Navbar from "../components/Navbar"
 import { useState } from "react"
+import { useAuth } from "../context/AuthContext"
 
 export default function About() {
 
     const [query, setQuery] = useState('')
+    const { user } = useAuth();
 
     async function createEmbeddings() {
         try {
+            if (!user) { return }
             const response = await fetch(`${import.meta.env.VITE_API_URL}/embeddings`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ query })
+                body: JSON.stringify({ user, query })
             })
             const data = await response.json()
             console.log(data)

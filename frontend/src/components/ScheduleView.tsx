@@ -1,19 +1,31 @@
 import { EventData } from "../types";
 import { IconBaseProps } from "react-icons";
 import { dateToTime } from "../lib/dateFormatter";
+import { useState } from "react";
+import { FaTimes } from "react-icons/fa";
 
 interface ScheduleViewProps {
     events?: EventData[];
 }
 
 export default function ScheduleView( {events}: ScheduleViewProps ) {
+
+    const [openPopup, setOpenPopup] = useState<boolean>(false);
+    const [popupEvent, setPopupEvent] = useState<EventData | null>(null);
     
-    if (events === null || events === undefined) {
+    if (events === null || events === undefined || events.length === 0) {
         return (
-            <div className="mt-4">
-                No events
+            <div className="mt-4 py-2">
+                <div>
+                    Select a date to view events
+                </div>
             </div>
         )
+    }
+
+    function handleCardClick(event: EventData) {
+        setPopupEvent(event);
+        setOpenPopup(true);
     }
 
     return (
@@ -21,9 +33,18 @@ export default function ScheduleView( {events}: ScheduleViewProps ) {
             {events && events.map((event, idx) => {
 
                 const Icon:React.ComponentType<IconBaseProps> = event.type.icon;
+                let isCurrentEvent = false;
+                if (event.startTime && event.endTime) {
+                    isCurrentEvent = event.startTime <= new Date() && event.endTime >= new Date();
+                }
 
                 return (
-                    <div key={idx} className="flex gap-x-4 items-center py-2 border-t-2 border-black/40"> 
+                    <button 
+                        type="button" 
+                        onClick={() => handleCardClick(event)} 
+                        key={idx} 
+                        className={`${isCurrentEvent ? "bg-gray-100" : ""} rounded-md p-2 h-full flex gap-x-4 items-center py-2`}
+                    > 
                         <div className={`p-2 rounded-full ${event.type.color}`}>
                             <Icon/>
                         </div>
@@ -35,12 +56,18 @@ export default function ScheduleView( {events}: ScheduleViewProps ) {
                                 {event.startTime && dateToTime(event.startTime)} - {event.endTime && dateToTime(event.endTime)}
                             </div>
                         </div>
-                        <p className="ml-auto font-bold">
-                            {idx+1}
-                        </p>
-                    </div>
+                    </button>
                 )
             })}
+
+            <div className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 p-4 rounded-md bg-white border-2 border-black ${openPopup ? "flex" : "hidden"}`}>
+                <div className="w-full gap-x-8 flex items-center justify-between">
+                    <h3 className="font-bold">{popupEvent && popupEvent.title}</h3>
+                    <button className="cursor-pointer" type="button" onClick={() => setOpenPopup(false)}>
+                        <FaTimes/>
+                    </button>
+                </div>
+            </div>
         </div>
     )
 }

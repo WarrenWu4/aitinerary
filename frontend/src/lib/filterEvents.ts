@@ -36,3 +36,19 @@ export function getEventsOnDate(events?: EventData[], date?: Date | null) {
     }
     return eventsOnDate;
 }
+
+export function eventTypeDefaults(event: EventData) {
+    if (event.type.color === "bg-blue-300") {
+        // if airplane display: title, start/end time, people flying
+        // bonus: add arrival time, embed ticket
+        return {
+            title: event.title,
+            startTime: event.startTime,
+            endTime: event.endTime,
+            people: event.people
+        }
+    }
+
+
+    return "";
+}

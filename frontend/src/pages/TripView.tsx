@@ -26,7 +26,7 @@ export default function TripTable() {
                 metadata: {
                     tripid: "1",
                     name: "New York with the boys",
-                    start: new Date("2-17-2025"),
+                    start: new Date("2-16-2025"),
                     end: new Date("2-20-2025"),
                     destination: "New York",
                     collaborators: ["Warren Wu", "Jenny Wu"]
@@ -35,8 +35,8 @@ export default function TripTable() {
                     type: EventTypes.flight,
                     title: "AUS to NYC Plane Ride",
                     description: "flight from austin to new york",
-                    startTime: new Date("2-17-2025"), 
-                    endTime: new Date("2-17-2025"), 
+                    startTime: new Date("2-16-2025 4:00:00"), 
+                    endTime: new Date("2-16-2025 5:00:00"), 
                     people: ["Warren Wu"]
                 }, {
                     type: EventTypes.drive,
@@ -60,13 +60,14 @@ export default function TripTable() {
         <PageContainer>
             <Navbar/>
 
-            <div className="flex gap-x-8 items-center mt-8">
-                <div className="">
+            <div className="mt-8">
+                <div className="w-full flex items-center justify-between">
                     <h1 className="font-bold text-4xl font-alex">New york with the boys</h1>
-                    <div>
-                    </div>
+                    <NavLink className={`px-4 py-2 rounded-md bg-black text-white font-semibold`} to={`/trips/${uid}/${tripid}/edit`}>
+                        Edit Trip
+                    </NavLink>
                 </div>
-                <div className="h-full rounded-md border-2 p-4">
+                <div className="mt-4 w-fit h-full rounded-md border-2 p-4">
                     <p className="font-bold mb-2">Up Next: </p> 
                     {
                         nextEvent ? 
@@ -91,18 +92,17 @@ export default function TripTable() {
                         </div>
                     }
                 </div>
-                <NavLink to={`/trips/${uid}/${tripid}/edit`}>
-                    edit
-                </NavLink>
             </div>
 
-            <div className="flex gap-x-4 items-center h-full mt-6">
-                <div className="rounded-md border-2 p-4 h-full">
+            <div className="flex gap-x-4 mt-6 h-full">
+                <div className="rounded-md border-2 p-4">
                     <h3 className="font-bold">Calendar</h3>
                     {tripData && tripData.metadata.start && tripData.metadata.end && <Calendar startDate={tripData.metadata.start} endDate={tripData.metadata.end} activeDate={activeDate} setActiveDate={setActiveDate}/>}
                 </div>
-                <FaArrowRightLong />
-                <div className="rounded-md border-2 p-4 h-full">
+                <div className="grid grid-place-items-center min-h-full ">
+                    <FaArrowRightLong className="my-auto" />
+                </div>
+                <div className="min-w-80 rounded-md border-2 p-4 min-h-full">
                     <h3 className="font-bold">Schedule</h3>
                     <ScheduleView
                         events={getEventsOnDate(tripData?.events, activeDate)}

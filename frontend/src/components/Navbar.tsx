@@ -34,26 +34,28 @@ export default function Navbar() {
                 >
                     About
                 </NavLink>
-                <NavLink
-                    to={"/trips/default"}
-                    className={({isActive}) => 
-                        isActive ? "font-bold text-black" : "" 
-                    }
-                >
-                    My Trips 
-                </NavLink>
-                <NavLink
-                    to={"/scrapbook/default"}
-                    className={({isActive}) => 
-                        isActive ? "font-bold text-black" : ""
-                    }
-                >
-                    Scrapbook
-                </NavLink>
                 {user ? (
-                    <span className="bg-[#D5C8FC] px-4 py-2 rounded-md">
-                        {user.name}
-                    </span>
+                    <>
+                        <NavLink
+                            to={`/trips/${user._id}`}
+                            className={({isActive}) => 
+                                isActive ? "font-bold text-black" : "" 
+                            }
+                        >
+                            My Trips 
+                        </NavLink>
+                        <NavLink
+                            to={`/scrapbook/${user._id}`}
+                            className={({isActive}) => 
+                                isActive ? "font-bold text-black" : ""
+                            }
+                        >
+                            Scrapbook
+                        </NavLink>
+                        <span className="bg-[#D5C8FC] px-4 py-2 rounded-md">
+                            {user.name}
+                        </span>
+                    </>
                 ) : (
                     <NavLink
                         to={"/signin"}

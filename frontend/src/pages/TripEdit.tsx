@@ -4,10 +4,14 @@ import { useState, useEffect } from 'react';
 import { EventData, EventTypes, TripData } from '../types';
 import { FaPlus } from 'react-icons/fa';
 import filterEvents from '../lib/filterEvents';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
+import LocationEdits from '../components/LocationEdits';
+import DatePicker from '../components/DatePicker';
+import dayjs from 'dayjs';
 
 export default function TripEdit() {
     const location = useLocation();
+    const { uid, tripid } = useParams();
     const initialTripData = location.state?.tripData;
     const [tripData, setTripData] = useState<TripData | null>(null);
     const [dropDownOpen, setDropDownOpen] = useState<boolean>(false);
@@ -28,6 +32,15 @@ export default function TripEdit() {
         "entertainment": EventTypes.entertainment,
         "shopping": EventTypes.shopping,
     }
+    const [dateRange, setDateRange] = useState([null, null]);
+
+    useEffect(() => {   
+        if (dateRange[0] && dateRange[1] && tripData) {
+            tripData.metadata.start = dayjs(dateRange[0]).toDate();
+            tripData.metadata.end = dayjs(dateRange[1]).toDate();
+            console.log(tripData);
+        }
+    }, [dateRange]);
 
     useEffect(() => {
         async function fetchData() {
@@ -107,6 +120,37 @@ export default function TripEdit() {
         });
     }
 
+    async function saveTrip() {
+        // Save the trip data to the database
+        if (tripData === null) {
+            return
+        }
+        const dbObj = {
+            "_id": tripid,
+            "title": tripData.metadata.name,
+            "destination": tripData.metadata.destination,
+            "start_date": tripData.metadata.start,
+            "end_date": tripData.metadata.end,
+            "owner_id": uid,
+            "collaborators": tripData.metadata.collaborators,
+            "created_at": "", // handled in backend
+            "activities": tripData.events,
+            "lodging_id": "1",
+            "travel_id" : "1",
+            "status": new Date() >= tripData.metadata.start ? "active" : "past",
+        };
+        console.log(dbObj);
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/trips`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(dbObj),
+        });
+        const data = await res.json();
+        console.log(data);
+    }
+
     return (
         <PageContainer>
             <Navbar/>
@@ -121,10 +165,15 @@ export default function TripEdit() {
 
             <div className='mt-4'>
                 <h3 className="font-alex font-bold text-xl">Destination</h3>
+                <LocationEdits
+                    location={tripData.metadata.destination}
+                    setLocation={(location) => tripData.metadata.destination = location}
+                />
             </div>
 
             <div className='mt-4'>
                 <h3 className="font-alex font-bold text-xl">Trip Dates</h3>
+                <DatePicker date={dateRange} setDate={setDateRange} />
             </div>
 
             <div className='mt-4'>
@@ -198,6 +247,10 @@ export default function TripEdit() {
 
             <button onClick={() => setDropDownOpen(true)}>
             add event
+            </button>
+
+            <button onClick={saveTrip}>
+            save
             </button>
 
             <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-4 bg-white border-2 border-black/60 rounded-md ${dropDownOpen ? "flex flex-col" : "hidden"}`}>

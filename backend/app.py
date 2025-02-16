@@ -336,5 +336,15 @@ def test_trip_operations():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/trip/<trip_id>/<uid>", methods=["GET"])
+def get_trip(trip_id, uid):
+    try:
+        trip = trips_collection.find_one({"_id": ObjectId(trip_id)})
+        if not trip:
+            return jsonify({"error": "Trip not found"}), 404
+        return jsonify(to_json(trip)), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == "__main__":
-    app.run(host='localhost', port=3000)
+    app.run(host='localhost', port=3000, debug=True)

@@ -22,17 +22,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const checkAuth = async () => {
         try {
-            console.log("Checking auth...");
+            // console.log("Checking auth...");
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/user`, {
                 credentials: 'include'
             });
-            console.log("Auth response:", response);
+            // console.log("Auth response:", response);
             if (response.ok) {
                 const userData = await response.json();
-                console.log("User data received:", userData);
+                // console.log("User data received:", userData);
                 setUser(userData);
             } else {
-                console.log("Auth failed with status:", response.status);
+                // console.log("Auth failed with status:", response.status);
                 setUser(null);
             }
         } catch (error) {

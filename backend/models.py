@@ -52,25 +52,31 @@ def get_user_by_oauth_id(oauth_id):
 
 def create_trip(data):
     try:
-        existing_trip = trips_collection.find_one({"title": data["title"], "owner_id": data["owner_id"]})
+        # removing this because need to overwrite existing trips anyways
+        existing_trip = trips_collection.find_one({"_id": ObjectId(data["trip_id"])})
         if existing_trip:
-            return jsonify({"error": "Trip with this title already exists!"}), 400
-        trip = {
-            "trip_id": data["trip_id"],  # Using frontend-provided UUID
-            "title": data["title"],
-            "destination": data["destination"],
-            "start_date": data["start_date"],
-            "end_date": data["end_date"],
-            "owner_id": data["owner_id"],
-            "collaborators": [],
-            "created_at": datetime.utcnow(),
-            "activities": [],
-            "lodging_id": None,
-            "travel_id": None,
-            "status": "active"
-        }
-        result = trips_collection.insert_one(trip)
-        return jsonify({"message": "Trip created!", "trip_id": data["trip_id"]}), 201
+            trips_collection.update_one(
+                {"title": data["title"], "owner_id": data["owner_id"]},
+                {"$set": data}
+            )
+            return jsonify({"message": "trip updated", "trip_id": data["trip_id"]}), 200 
+        else:
+            trip = {
+                    "trip_id": data["trip_id"],  # Using frontend-provided UUID
+                    "title": data["title"],
+                    "destination": data["destination"],
+                    "start_date": data["start_date"],
+                    "end_date": data["end_date"],
+                    "owner_id": data["owner_id"],
+                    "collaborators": [],
+                    "created_at": datetime.utcnow(),
+                    "activities": [],
+                    "lodging_id": None,
+                    "travel_id": None,
+                    "status": "active"
+                    }
+            result = trips_collection.insert_one(trip)
+            return jsonify({"message": "Trip created!", "trip_id": data["trip_id"]}), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

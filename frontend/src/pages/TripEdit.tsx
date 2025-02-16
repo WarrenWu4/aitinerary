@@ -67,7 +67,6 @@ export default function TripEdit() {
                         destination: initialTripData.location,
                         collaborators: [],
                     },
-                    budget: [],
                     events: [],
                 });
                 // Set initial date range based on trip dates
@@ -77,14 +76,17 @@ export default function TripEdit() {
                 ]);
             } else {
                 // Your existing fetchData logic for editing existing trips
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/trip/${tripid}/${uid}`);
+                const data = await res.json();
+                console.log(data);
                 const existingTrip = {
                     metadata: {
-                        tripid: '1',
-                        name: 'Trip 1',
-                        start: new Date(),
-                        end: new Date(),
-                        destination: 'San Francisco',
-                        collaborators: ["user1", "user2"],
+                        tripid: tripid,
+                        name: data.title,
+                        start: new Date(data.start_date),
+                        end: new Date(data.end_date),
+                        destination: data.destination,
+                        collaborators: [],
                     },
                     events: [{
                         type: EventTypes.flight,
@@ -92,7 +94,7 @@ export default function TripEdit() {
                         description: 'Description 1',
                         startTime: new Date(),
                         endTime: new Date(),
-                        people: ['user1', 'user2'],
+                        people: [],
                     }],
                 };
                 setTripData(existingTrip);
@@ -153,34 +155,7 @@ export default function TripEdit() {
         });
         const d = await r.json();
         console.log(d);
-        // shit is broken asf on the backend not on me:))
-        const dbObj = {
-            "trip_id": tripid,
-            "title": tripData.metadata.name,
-            "destination": tripData.metadata.destination,
-            "start_date": tripData.metadata.start,
-            "end_date": tripData.metadata.end,
-            "owner_id": uid,
-            "collaborators": tripData.metadata.collaborators,
-            "created_at": "", // handled in backend
-            "activities": [...activityIds, newActivityId],
-            "lodging_id": "1",
-            "travel_id" : "1",
-            "status": new Date() >= tripData.metadata.start ? "active" : "past",
-        };
         setActivityIds([...activityIds, newActivityId])
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/trips/${tripid}`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${userToken}`,
-            },
-            credentials: 'include',
-            body: JSON.stringify(dbObj),
-        });
-        const data = await res.json();
-        console.log(data);
-        // update backend with new activities
         // Reset the new event form
         setNewEvent({
             type: EventTypes.flight,

@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 
 export default function Navbar() {
     const { user, logout } = useAuth();
-    console.log("Current user in Navbar:", user);
+//    console.log("Current user in Navbar:", user);
 
     return (
         <div className="w-full flex justify-between items-center pb-5 border-b-2 border-black/40">

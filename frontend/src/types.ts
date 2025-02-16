@@ -14,17 +14,9 @@ export interface TripInfo {
 
 // specific details about the trip
 export interface TripData {
-    tripid: string;
-    collaborators: string[];
-    name: string;
-    locations: string[];
-    dates: Date[];
+    metadata: TripInfo;
     budget: number[];
-    transportation: EventData[];
-    lodging: EventData[];
-    dining: EventData[];
-    entertainment: EventData[];
-    shopping: EventData[];
+    events: EventData[];
 }
 
 export interface EventType {
@@ -33,12 +25,13 @@ export interface EventType {
 }
 
 export const EventTypes = {
+    // transportation
     flight: {icon: IoAirplane, color: "bg-blue-300"},
     drive: {icon: FaCarSide, color: "bg-purple-300"},
-
+    // lodging
     checkin: {icon: FaCheck, color: "bg-green-300"},
     checkout: {icon: FaTimes, color: "bg-red-300"},
-
+    // activites
     dining: {icon: FaCheck, color: "bg-yellow-300"},
     entertainment: {icon: FaCheck, color: "bg-emerald-300"},
     shopping: {icon: FaCheck, color: "bg-cyan-300"},
@@ -48,7 +41,7 @@ export interface EventData {
     type: EventType;
     title: string;
     description: string;
-    startTime: Date;
-    endTime: Date;
+    startTime: Date | null;
+    endTime: Date | null;
     people: string[];
 }

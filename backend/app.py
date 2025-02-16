@@ -451,5 +451,15 @@ def get_user_emails():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/activity/<activity_id>", methods=["GET"])
+def get_activity(activity_id):
+    try:
+        activity = activities_collection.find_one({"activity_id": activity_id})
+        if not activity:
+            return jsonify({"error": "Activity not found"}), 404
+        return jsonify(to_json(activity)), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == "__main__":
     app.run(host='localhost', port=3000, debug=True)

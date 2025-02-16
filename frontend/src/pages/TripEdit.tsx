@@ -92,15 +92,26 @@ export default function TripEdit() {
                         destination: data.destination,
                         collaborators: data.collaborators,
                     },
-                    events: [{
-                        type: EventTypes.flight,
-                        title: 'Flight 1',
-                        description: 'Description 1',
-                        startTime: new Date(),
-                        endTime: new Date(),
-                        people: [],
-                    }],
+                    events: [],
                 };
+                for (let i = 0; i < data.activities.length; i++) {
+                    console.log(data.activities);
+                    const res = await fetch(`${import.meta.env.VITE_API_URL}/activity/${data.activities[i]}`);
+                    const activityData = await res.json();
+                    const event = {
+                        type: {
+                            icon: activityData.icon,
+                            color: activityData.color,
+                        },
+                        title: activityData.title,
+                        description: activityData.description,
+                        startTime: new Date(activityData.start_time),
+                        endTime: new Date(activityData.end_time),
+                        people: activityData.people,
+                    };
+                    existingTrip.events.push(event);
+                    setActivityIds([...activityIds, data.activities[i]]);
+                }
                 setTripData(existingTrip);
                 // Set initial date range based on existing trip dates
                 setDateRange([

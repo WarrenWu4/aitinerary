@@ -187,7 +187,7 @@ export default function TripEdit() {
             credentials: 'include',
             body: JSON.stringify({
                 "activity_id": newActivityId,
-                "icon": String(newEvent.type.icon),
+                "icon": newEvent.type.icon.name,
                 "color": newEvent.type.color,
                 "title": newEvent.title,
                 "description": newEvent.description,

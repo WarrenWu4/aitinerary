@@ -32,7 +32,8 @@ export default function ScheduleView( {events}: ScheduleViewProps ) {
         <div className="flex flex-col gap-y-4 mt-4">
             {events && events.map((event, idx) => {
 
-                const Icon:React.ComponentType<IconBaseProps> = event.type.icon;
+                console.log(event);
+                // const Icon:React.ComponentType<IconBaseProps> = event.type.icon;
                 let isCurrentEvent = false;
                 if (event.startTime && event.endTime) {
                     isCurrentEvent = event.startTime <= new Date() && event.endTime >= new Date();
@@ -45,8 +46,7 @@ export default function ScheduleView( {events}: ScheduleViewProps ) {
                         key={idx} 
                         className={`${isCurrentEvent ? "bg-gray-100" : ""} rounded-md p-2 h-full flex gap-x-4 items-center py-2`}
                     > 
-                        <div className={`p-2 rounded-full ${event.type.color}`}>
-                            <Icon/>
+                        <div className={`p-6 rounded-full ${event.type.color}`}>
                         </div>
                         <div>
                             <p>

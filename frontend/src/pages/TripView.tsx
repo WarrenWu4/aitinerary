@@ -13,7 +13,6 @@ import { dateToTime } from "../lib/dateFormatter";
 export default function TripTable() {
 
     const {uid, tripid} = useParams();
-    console.log(uid, tripid);
 
     const [tripData, setTripData] = useState<TripData | null>(null);
     const [nextEvent, setNextEvent] = useState<EventData | null>(null);
@@ -22,32 +21,38 @@ export default function TripTable() {
     useEffect(() => {
 
         async function fetchData() {
-            const data =  {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/trip/${tripid}/${uid}`);
+            const data = await res.json();
+            console.log(data);
+            const existingTrip = {
                 metadata: {
-                    tripid: "1",
-                    name: "New York with the boys",
-                    start: new Date("2-16-2025"),
-                    end: new Date("2-20-2025"),
-                    destination: "New York",
-                    collaborators: ["Warren Wu", "Jenny Wu"]
+                    tripid: tripid,
+                    name: data.title,
+                    start: new Date(data.start_date),
+                    end: new Date(data.end_date),
+                    destination: data.destination,
+                    collaborators: data.collaborators,
                 },
-                events: [{
-                    type: EventTypes.flight,
-                    title: "AUS to NYC Plane Ride",
-                    description: "flight from austin to new york",
-                    startTime: new Date("2-16-2025 4:00:00"), 
-                    endTime: new Date("2-16-2025 5:00:00"), 
-                    people: ["Warren Wu"]
-                }, {
-                    type: EventTypes.drive,
-                    title: "NYC to JFK Drive",
-                    description: "drive from new york to jfk",
-                    startTime: new Date("2-18-2025"), 
-                    endTime: new Date("2-18-2025"), 
-                    people: ["Warren Wu"]
-                }]
+                events: [],
             };
-            setTripData(data);
+            for (let i = 0; i < data.activities.length; i++) {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/activity/${data.activities[i]}`);
+                const activityData = await res.json();
+                console.log(activityData);
+                const event = {
+                    type: {
+                        icon: activityData.icon,
+                        color: activityData.color,
+                    },
+                    title: activityData.title,
+                    description: activityData.description,
+                    startTime: new Date(activityData.start_time),
+                    endTime: new Date(activityData.end_time),
+                    people: activityData.people,
+                };
+                existingTrip.events.push(event);
+            }
+            setTripData(existingTrip);
             const nE = getNextEvent(data.events || []);
             setNextEvent(nE);
         }
@@ -62,7 +67,7 @@ export default function TripTable() {
 
             <div className="mt-8">
                 <div className="w-full flex items-center justify-between">
-                    <h1 className="font-bold text-4xl font-alex">New york with the boys</h1>
+                    <h1 className="font-bold text-4xl font-alex">{tripData?.metadata.name}</h1>
                     <NavLink className={`px-4 py-2 rounded-md bg-black text-white font-semibold`} to={`/trips/${uid}/${tripid}/edit`}>
                         Edit Trip
                     </NavLink>

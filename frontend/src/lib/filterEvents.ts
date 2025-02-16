@@ -13,3 +13,26 @@ export default function filterEvents(events: EventData[], filters: EventType[]) 
     // filteredEvents.sort((e1, e2) => e1.startTime.getTime() - e2.startTime.getTime());
     return filteredEvents;
 }
+
+export function getNextEvent(events: EventData[]) {
+    let nextEvent = events[0];
+    for (let event of events) {
+        if (nextEvent.startTime && event.startTime && (event.startTime.getTime() < nextEvent.startTime.getTime())) {
+            nextEvent = event;
+        }
+    }
+    return nextEvent;
+}
+
+export function getEventsOnDate(events?: EventData[], date?: Date | null) {
+    if (!date || !events || date === null) {
+        return [];
+    }
+    let eventsOnDate: EventData[] = [];
+    for (let event of events) {
+        if (event.startTime && event.startTime.getDate() === date.getDate()) {
+            eventsOnDate.push(event);
+        }
+    }
+    return eventsOnDate;
+}

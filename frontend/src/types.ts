@@ -15,7 +15,6 @@ export interface TripInfo {
 // specific details about the trip
 export interface TripData {
     metadata: TripInfo;
-    budget: number[];
     events: EventData[];
 }
 

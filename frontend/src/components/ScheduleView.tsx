@@ -1,40 +1,24 @@
-import { useEffect, useState } from "react"
-import { EventData, EventTypes } from "../types";
+import { EventData } from "../types";
 import { IconBaseProps } from "react-icons";
 import { dateToTime } from "../lib/dateFormatter";
 
-export default function ScheduleView() {
+interface ScheduleViewProps {
+    events?: EventData[];
+}
 
-    const [eventsData, setEventsData] = useState<EventData[] | null>(null);
-
-    useEffect(() => {
-       
-        async function fetchData() {
-            console.log(eventsData);
-            setEventsData([{
-                type: EventTypes.flight,
-                title: "AUS to NYC Plane Ride",
-                description: "flight from austin to new york",
-                startTime: new Date(), 
-                endTime: new Date(), 
-                people: ["Warren Wu"]
-            }, {
-                type: EventTypes.drive,
-                title: "NYC to JFK Drive",
-                description: "drive from new york to jfk",
-                startTime: new Date(), 
-                endTime: new Date(), 
-                people: ["Warren Wu"]
-            }]);
-        }
-
-        fetchData();
-
-    }, [])
+export default function ScheduleView( {events}: ScheduleViewProps ) {
+    
+    if (events === null || events === undefined) {
+        return (
+            <div className="mt-4">
+                No events
+            </div>
+        )
+    }
 
     return (
         <div className="flex flex-col gap-y-4 mt-4">
-            {eventsData && eventsData.map((event, idx) => {
+            {events && events.map((event, idx) => {
 
                 const Icon:React.ComponentType<IconBaseProps> = event.type.icon;
 
@@ -48,7 +32,7 @@ export default function ScheduleView() {
                                 {event.title}
                             </p>
                             <div>
-                                {dateToTime(event.startTime)} - {dateToTime(event.endTime)}
+                                {event.startTime && dateToTime(event.startTime)} - {event.endTime && dateToTime(event.endTime)}
                             </div>
                         </div>
                         <p className="ml-auto font-bold">

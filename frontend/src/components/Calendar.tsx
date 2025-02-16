@@ -1,14 +1,15 @@
 // todo: fix dumbass warnings
-// add onclick for active calendar and pass in the props
 import { useState } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
 interface CalendarProps {
     startDate: Date;
     endDate: Date;
+    activeDate: Date | null;
+    setActiveDate: (d: Date) => void;
 }
 
-export default function Calendar({ startDate, endDate }: CalendarProps) {
+export default function Calendar({ startDate, endDate, activeDate, setActiveDate }: CalendarProps) {
     const monthMappings = [
         "January", "February", "March", "April", "May", "June",
         "July", "August", "September", "October", "November", "December"
@@ -16,7 +17,6 @@ export default function Calendar({ startDate, endDate }: CalendarProps) {
     const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
     const [currentDate, setCurrentDate] = useState(startDate);
-    const [activeDate, setActiveDate] = useState(new Date());
 
     const handlePrevMonth = () => {
         setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1));
@@ -75,12 +75,26 @@ export default function Calendar({ startDate, endDate }: CalendarProps) {
 
                     const dayDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
                     const isInRange = dayDate >= startDate && dayDate <= endDate;
-                    const isActiveDate = day === activeDate.getDate() && currentDate.getMonth() === activeDate.getMonth() && currentDate.getFullYear() === activeDate.getFullYear();
+                    let isActiveDate = false;
+                    if (activeDate != null) {
+                        isActiveDate = day === activeDate.getDate() && currentDate.getMonth() === activeDate.getMonth() && currentDate.getFullYear() === activeDate.getFullYear();
+                    }
 
+                    if (isInRange) {
+                        return (
+                            <div
+                                key={index}
+                                onClick={() => setActiveDate(dayDate)}
+                                className={`p-2 rounded-md text-sm font-medium ${isActiveDate ? "bg-blue-500 text-white" : "text-black hover:bg-gray-100 cursor-pointer"}`}
+                            >
+                                {day}
+                            </div>
+                        )
+                    }
                     return (
                         <div
                             key={index}
-                            className={`p-2 rounded-md cursor-pointer text-sm font-medium ${isActiveDate ? "bg-blue-500 text-white" : isInRange ? "text-black hover:bg-gray-100" : "text-gray-400"}`}
+                            className={`p-2 rounded-md text-sm font-medium text-gray-400`}
                         >
                             {day}
                         </div>

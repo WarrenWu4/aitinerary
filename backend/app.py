@@ -522,5 +522,9 @@ def upload_scrapbook_entry(trip_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/recommendation", methods=["GET"])
+def get_recommendation():
+    return jsonify({"message": "Recommendation feature is not implemented yet"}), 501
+
 if __name__ == "__main__":
     app.run(host='localhost', port=3000, debug=True)

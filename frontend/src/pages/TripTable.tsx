@@ -5,9 +5,10 @@ import { TripInfo } from "../types";
 import { RiArrowRightUpLine } from "react-icons/ri";
 import { NavLink, useParams } from "react-router-dom";
 import { startEndDateNicer } from "../lib/dateFormatter";
+import { useNavigate } from "react-router-dom";
 
 export default function TripTable() {
-
+    const navigate = useNavigate();
     const {uid} = useParams();
     const [tripsData, setTripsData] = useState<TripInfo[]>([]);
     const [groupedTrips, setGroupedTrips] = useState<{
@@ -72,6 +73,17 @@ export default function TripTable() {
         setGroupedTrips(grouped);
     }, [tripsData]);
 
+    const handlePlanClick = () => {
+        const tripData = {
+            location: "San Francisco",
+            startDate: null,
+            endDate: null,
+        };
+        navigate(`/trips/${uid}/${crypto.randomUUID().toString()}/edit`, { 
+            state: { tripData }
+        });
+    };
+
     const TripSection = ({ trips, title }: { trips: TripInfo[], title: string }) => {
         if (trips.length === 0) return null;
         
@@ -111,9 +123,9 @@ export default function TripTable() {
             <Navbar/>
 
             <div className="mt-12">
-                <NavLink className={`mt-16 px-4 py-2 rounded-md bg-black text-white font-bold`} to={`/trips/${uid}/${crypto.randomUUID().toString()}/edit`}>
+                <button type="button" onClick={handlePlanClick} className={`mt-16 px-4 py-2 rounded-md bg-black text-white font-bold`} to={`/trips/${uid}/${crypto.randomUUID().toString()}/edit`}>
                     Create New Trip
-                </NavLink>
+                </button>
             </div>
 
             <div className="mt-8">

@@ -86,7 +86,7 @@ export default function TripEdit() {
                         start: new Date(data.start_date),
                         end: new Date(data.end_date),
                         destination: data.destination,
-                        collaborators: [],
+                        collaborators: data.collaborators,
                     },
                     events: [{
                         type: EventTypes.flight,

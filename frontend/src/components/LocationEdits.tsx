@@ -84,54 +84,58 @@ export default function LocationEdits({location, setLocation}: LocationEditsProp
         };
     };
 
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(e.target.value);
+        setLocation(e.target.value);
+        setShowDropdown(true);
+    };
+
+    const handleSuggestionClick = (city: ICity) => {
+        setSearchTerm(getLocationLabel(city).displayName);
+        setLocation(getLocationLabel(city).displayName);
+        setShowDropdown(false);
+    };
+
     return (
-        <div>
+        <div className="relative w-full">
             <div className="w-full mt-2 flex gap-x-4 items-center text-gray-400 text-sm font-semibold">
                 <p>Start</p>
                 <div className="w-full h-[2px] rounded-full bg-gray-200"></div>
                 <p>End</p>
             </div>
             <div className="flex gap-x-4 items-center">
-            <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setLocation(e.target.value);
-                setShowDropdown(true);
-            }}
-            onFocus={() => setShowDropdown(true)}
-            placeholder="Choose your start and end locations"
-            className="mt-1 w-full p-2 text-gray-500 text-sm border-b border-gray-200 focus:outline-none focus:border-gray-400"
-            />
-            {showDropdown && cities.length > 0 && (
-                <div className="absolute top-full left-0 w-full bg-white mt-1 shadow-lg rounded-md border border-gray-200 max-h-80 overflow-y-auto z-10">
-                {cities.map((city, index) => {
-                    const location = getLocationLabel(city);
-                    return (
-                        <div 
-                        key={index}
-                        className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100"
-                        onClick={() => {
-                            setSearchTerm(location.displayName);
-                            setLocation(location.displayName);
-                            setShowDropdown(false);
-                        }}
-                        >
-                        <div className="flex items-start gap-2">
-                        <GrLocation className="mt-1 text-gray-400" />
-                        <div>
-                        <p className="font-medium">{city.name}</p>
-                        <p className="text-sm text-gray-500">
-                        {location.subText}
-                        </p>
-                        </div>
-                        </div>
-                        </div>
-                    );
-                })}
-                </div>
-            )}
+                <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={handleInputChange}
+                    onFocus={() => setShowDropdown(true)}
+                    placeholder="Choose your start and end locations"
+                    className="mt-1 w-full p-2 text-gray-500 text-sm border-b border-gray-200 focus:outline-none focus:border-gray-400"
+                />
+                {showDropdown && cities.length > 0 && (
+                    <div className="absolute top-full left-0 w-full bg-white mt-1 shadow-lg rounded-md border border-gray-200 max-h-80 overflow-y-auto z-10">
+                        {cities.map((city, index) => {
+                            const location = getLocationLabel(city);
+                            return (
+                                <div 
+                                    key={index}
+                                    className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100"
+                                    onClick={() => handleSuggestionClick(city)}
+                                >
+                                    <div className="flex items-start gap-2">
+                                        <GrLocation className="mt-1 text-gray-400" />
+                                        <div>
+                                            <p className="font-medium">{city.name}</p>
+                                            <p className="text-sm text-gray-500">
+                                                {location.subText}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
             </div>
         </div>
     )

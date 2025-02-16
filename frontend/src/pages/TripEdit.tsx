@@ -456,6 +456,7 @@ export default function TripEdit() {
                                             <div className="text-sm text-gray-600">{rec.description}</div>
                                         </button>
                                     ))}
+                                    {recommendations.length === 0 && <p>Recommendations not available for location :(</p>}
                                 </div>
                             </div>
 

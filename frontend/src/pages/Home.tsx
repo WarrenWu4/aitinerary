@@ -25,7 +25,7 @@ export default function Home() {
             startDate: dateRange[0] ? dayjs(dateRange[0]).format('YYYY-MM-DD') : null,
             endDate: dateRange[1] ? dayjs(dateRange[1]).format('YYYY-MM-DD') : null
         };
-        navigate(`/trips/${user._id}/new`, { 
+        navigate(`/trips/${user._id}/${crypto.randomUUID().toString()}/edit`, { 
             state: { tripData }
         });
     };

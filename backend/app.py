@@ -13,6 +13,8 @@ from auth import requires_auth, get_current_user, get_user_data
 from scrapbook import create_scrapbook_entry, get_scrapbook_entries, can_access_scrapbook
 from storage import upload_file
 from datetime import datetime
+import requests
+from google import genai
 
 app = Flask(__name__)
 # Enable CORS for all routes
@@ -522,9 +524,34 @@ def upload_scrapbook_entry(trip_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route("/recommendation", methods=["GET"])
+
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+
+@app.route("/recommendation", methods=["POST"])
 def get_recommendation():
-    return jsonify({"message": "Recommendation feature is not implemented yet"}), 501
+    data = request.json
+    # data = {"location": "New York City"}
+    if not data:
+        return jsonify({"error": "Location is required"}), 400
+    location = data.get("location")
+    prompt = f"""
+    Recommend some activites to do in {location}. Structure your format in the following way:
+    [{{
+        title: "",
+        description: "",
+    }}]
+    Do not attempt to pretty format the response. Also do not include any text other than the response. Do not format the response using new lines or line breaks or back slashes. Just one continuous string. Make sure that your response is in JSON format and can be parsed by the client.
+    """
+
+    response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=prompt,
+    )
+    if (not response.text):
+        return jsonify({"error": "No response from AI"}), 500
+    text = response.text.replace("\\", " ")
+    return jsonify({"msg": text}), 200
+
 
 if __name__ == "__main__":
     app.run(host='localhost', port=3000, debug=True)

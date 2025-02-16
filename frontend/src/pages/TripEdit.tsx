@@ -45,6 +45,7 @@ export default function TripEdit() {
     const [newCollaborator, setNewCollaborator] = useState<string>('');
     const [collaboratorError, setCollaboratorError] = useState<string>('');
     const [collaboratorEmails, setCollaboratorEmails] = useState<string[]>([]);
+    const [recommendations, setRecommendations] = useState<{title: string, description: string}[]>([]);
 
     useEffect(() => {   
         if (dateRange[0] && dateRange[1] && tripData) {
@@ -118,8 +119,25 @@ export default function TripEdit() {
                     dayjs(existingTrip.metadata.start),
                     dayjs(existingTrip.metadata.end)
                 ]);
+                const res2 = await fetch(`${import.meta.env.VITE_API_URL}/recommendation`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        "location": existingTrip.metadata.destination,
+                    }),
+                });
+                const data2 = await res2.json();
+                try {
+                    setRecommendations(JSON.parse(data2.msg));
+                } catch (error) {
+                    console.error('Failed to parse recommendations:', error);
+                }
+                console.log(data2);
             }
         }
+
 
         fetchData();
     }, [initialTripData]);
@@ -316,6 +334,52 @@ export default function TripEdit() {
         }
     };
 
+    async function addRecommendation(title: string, description: string) {
+        // create event
+        // Add the new event to the trip data
+        if (tripData === null) {
+            return;
+        }
+        const nE = {
+            type: EventTypes.entertainment,
+            title: title,
+            description: description,
+            startTime: new Date(),
+            endTime: new Date(),
+            people: [],
+        }
+        setTripData({
+            ...tripData,
+            events: [...tripData.events, nE]
+        });
+        const newActivityId = crypto.randomUUID().toString();
+        const userToken = getCookie('session');
+        // save activity to backend
+        const r = await fetch(`${import.meta.env.VITE_API_URL}/activity/create`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${userToken}`,
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                "activity_id": newActivityId,
+                "icon": nE.type.icon.name,
+                "color": nE.type.color,
+                "title": nE.title,
+                "description": nE.description,
+                "start_time": nE.startTime,
+                "end_time": nE.endTime,
+                "people": nE.people,
+            }),
+        });
+        const d = await r.json();
+        console.log(d);
+        setActivityIds([...activityIds, newActivityId])
+        // remove from recommendations
+        setRecommendations(recommendations.filter(rec => rec.title !== title));
+    }
+
     const renderTabContent = () => {
         // Helper function to filter events
         const filterEventsByTypes = (events: EventData[], types?: EventTypes[]) => {
@@ -362,6 +426,7 @@ export default function TripEdit() {
                                 />
                             </div>
 
+
                             {/* Timeline */}
                             <div className='bg-white shadow-sm rounded-xl p-6 border border-gray-200'>
                                 <h3 className="font-alex font-bold text-2xl mb-6">Trip Timeline</h3>
@@ -381,6 +446,19 @@ export default function TripEdit() {
                                     ))}
                                 </div>
                             </div>
+
+                            <div className='bg-white shadow-sm rounded-xl p-6 border border-gray-200'>
+                                <h3 className="font-alex font-bold text-2xl mb-4">Recommendations</h3>
+                                <div>
+                                    {recommendations.map((rec, idx) => (
+                                        <button type='button' onClick={() => addRecommendation(rec.title, rec.description)} key={idx} className="p-4 border rounded-lg mb-4">
+                                            <div className="font-medium">{rec.title}</div>
+                                            <div className="text-sm text-gray-600">{rec.description}</div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
                         </div>
 
                         {/* Right column - Stats & Actions */}

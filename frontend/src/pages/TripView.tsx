@@ -9,6 +9,21 @@ import ScheduleView from "../components/ScheduleView";
 import { NavLink } from "react-router-dom";
 import { getNextEvent, getEventsOnDate } from "../lib/filterEvents";
 import { dateToTime } from "../lib/dateFormatter";
+import { IoAirplane } from "react-icons/io5";
+import { FaCarSide, FaCheck, FaTimes } from "react-icons/fa";
+import { FaShoppingBag } from "react-icons/fa";
+import { FaTv } from "react-icons/fa";
+import { MdLocalDining } from "react-icons/md";
+
+export const eventToIcon = {
+    "IoAirplane": <IoAirplane />,
+    "FaCarSide": <FaCarSide />,
+    "FaCheck": <FaCheck />,
+    "FaTimes": <FaTimes />,
+    "FaShoppingBag": <FaShoppingBag />,
+    "FaTv": <FaTv />,
+    "MdLocalDining": <MdLocalDining />,
+}
 
 export default function TripTable() {
 
@@ -53,7 +68,7 @@ export default function TripTable() {
                 existingTrip.events.push(event);
             }
             setTripData(existingTrip);
-            const nE = getNextEvent(data.events || []);
+            const nE = getNextEvent(existingTrip.events || []);
             setNextEvent(nE);
         }
 
@@ -78,7 +93,7 @@ export default function TripTable() {
                         nextEvent ? 
                     <div className="flex gap-x-4 items-center py-2 border-t-2 border-black/40"> 
                         <div className={`p-2 rounded-full ${nextEvent?.type.color}`}>
-                            <nextEvent.type.icon/>
+                            {eventToIcon[nextEvent.type.icon]}
                         </div>
                         <div>
                             <p>

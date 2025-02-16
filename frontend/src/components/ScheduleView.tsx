@@ -3,6 +3,7 @@ import { IconBaseProps } from "react-icons";
 import { dateToTime } from "../lib/dateFormatter";
 import { useState } from "react";
 import { FaTimes } from "react-icons/fa";
+import { eventToIcon } from "../pages/TripView";
 
 interface ScheduleViewProps {
     events?: EventData[];
@@ -46,10 +47,11 @@ export default function ScheduleView( {events}: ScheduleViewProps ) {
                         key={idx} 
                         className={`${isCurrentEvent ? "bg-gray-100" : ""} rounded-md p-2 h-full flex gap-x-4 items-center py-2`}
                     > 
-                        <div className={`p-6 rounded-full ${event.type.color}`}>
+                        <div className={`p-2 rounded-full ${event.type.color}`}>
+                            {eventToIcon[event.type.icon]}
                         </div>
                         <div>
-                            <p>
+                            <p className="text-left">
                                 {event.title}
                             </p>
                             <div>

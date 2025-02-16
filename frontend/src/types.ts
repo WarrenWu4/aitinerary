@@ -1,6 +1,7 @@
 import { IconBaseProps } from "react-icons";
-import { FaCarSide, FaCheck, FaTimes } from "react-icons/fa";
+import { FaCarSide, FaCheck, FaShoppingBag, FaTimes, FaTv } from "react-icons/fa";
 import { IoAirplane } from "react-icons/io5";
+import { MdLocalDining } from "react-icons/md";
 
 // basic trip information to be shown on the trip table
 export interface TripInfo {
@@ -19,7 +20,7 @@ export interface TripData {
 }
 
 export interface EventType {
-    icon: React.ComponentType<IconBaseProps>;
+    icon: React.ComponentType<IconBaseProps> | string;
     color: string;
 }
 
@@ -31,19 +32,11 @@ export const EventTypes = {
     checkin: {icon: FaCheck, color: "bg-green-300"},
     checkout: {icon: FaTimes, color: "bg-red-300"},
     // activites
-    dining: {icon: FaCheck, color: "bg-yellow-300"},
-    entertainment: {icon: FaCheck, color: "bg-emerald-300"},
-    shopping: {icon: FaCheck, color: "bg-cyan-300"},
+    dining: {icon: MdLocalDining, color: "bg-yellow-300"},
+    entertainment: {icon: FaTv, color: "bg-emerald-300"},
+    shopping: {icon: FaShoppingBag, color: "bg-cyan-300"},
 } as const;
 
-export const EventTypes2 = {
-    // transportation
-    "IoAirplane": {icon: IoAirplane, color: "bg-blue-300"},
-    "FaCarSide": {icon: FaCarSide, color: "bg-purple-300"},
-    // lodging
-    "FaCheck": {icon: FaCheck, color: "bg-green-300"},
-    "FaTimes": {icon: FaTimes, color: "bg-red-300"},
-} as const;
 
 export interface EventData {
     type: EventType;

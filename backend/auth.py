@@ -58,7 +58,8 @@ def callback():
     }
     from models import create_or_update_user
     create_or_update_user(user_data)
-    return redirect("/")
+    # Redirect to frontend home page
+    return redirect(f"{os.getenv('FRONTEND_URL')}/")
 
 def get_user_data():
     tmp_user = session.get("user")

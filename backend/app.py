@@ -1,5 +1,6 @@
 from dotenv import find_dotenv, load_dotenv
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import os
 import auth
 from db import db, trips_collection, days_collection, activities_collection
@@ -11,6 +12,8 @@ from bson import ObjectId
 from auth import requires_auth, get_current_user, get_user_data
 
 app = Flask(__name__)
+# Enable CORS for all routes
+CORS(app, supports_credentials=True, origins=[os.getenv("FRONTEND_URL")])
 app.secret_key = os.getenv("APP_SECRET_KEY")
 
 if not app.secret_key:
@@ -176,6 +179,14 @@ def create_test_data():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route("/api/user")
+@requires_auth
+def get_user():
+    user_data = get_user_data()
+    if user_data:
+        return jsonify(user_data)
+    return jsonify({"error": "User not found"}), 404
 
 if __name__ == "__main__":
     app.run(host='localhost', port=3000)

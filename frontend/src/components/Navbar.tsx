@@ -1,7 +1,9 @@
 import { NavLink } from "react-router-dom";
+import { useAuth } from '../context/AuthContext';
 
 export default function Navbar() {
-    
+    const { user, logout } = useAuth();
+    console.log("Current user in Navbar:", user);
 
     return (
         <div className="w-full flex justify-between items-center pb-5 border-b-2 border-black/40">
@@ -48,7 +50,19 @@ export default function Navbar() {
                 >
                     Scrapbook
                 </NavLink>
+                {user ? (
+                    <span className="bg-[#D5C8FC] px-4 py-2 rounded-md">
+                        {user.name}
+                    </span>
+                ) : (
+                    <NavLink
+                        to={"/signin"}
+                        className="bg-[#D5C8FC] px-4 py-2 rounded-md hover:bg-[#c4b3fc] transition-colors"
+                    >
+                        Sign In
+                    </NavLink>
+                )}
             </div>
         </div>
-    )
+    );
 }

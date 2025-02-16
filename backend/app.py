@@ -346,5 +346,38 @@ def get_trip(trip_id, uid):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/trips/<trip_id>", methods=["PUT"])
+@requires_auth
+def update_existing_trip(trip_id):
+    try:
+        data = request.json
+        current_user = get_current_user()
+        user = get_user_by_oauth_id(current_user['userinfo']['sub'])
+        
+        # Verify user owns this trip
+        existing_trip = trips_collection.find_one({"_id": ObjectId(trip_id)})
+        if not existing_trip or str(existing_trip["owner_id"]) != str(user["_id"]):
+            return jsonify({"error": "Unauthorized"}), 403
+            
+        # Update the trip
+        trips_collection.update_one(
+            {"_id": ObjectId(trip_id)},
+            {"$set": {
+                "title": data["title"],
+                "destination": data["destination"],
+                "start_date": data["start_date"],
+                "end_date": data["end_date"],
+                "collaborators": data["collaborators"],
+                "activities": data["activities"],
+                "lodging_id": data["lodging_id"],
+                "travel_id": data["travel_id"],
+                "status": data["status"]
+            }}
+        )
+        
+        return jsonify({"message": "Trip updated successfully", "trip_id": trip_id}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == "__main__":
     app.run(host='localhost', port=3000, debug=True)

@@ -176,9 +176,8 @@ export default function TripEdit() {
 
     const saveTrip = async () => {
         try {
-            // Save the trip data to the database
             if (tripData === null) {
-                return
+                return;
             }
             const dbObj = {
                 "trip_id": tripid,
@@ -191,12 +190,18 @@ export default function TripEdit() {
                 "created_at": "", // handled in backend
                 "activities": activityIds,
                 "lodging_id": "1",
-                "travel_id" : "1",
+                "travel_id": "1",
                 "status": new Date() >= tripData.metadata.start ? "active" : "past",
             };
             const userToken = getCookie('session');
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/trips`, {
-                method: 'POST',
+            
+            // Determine if this is a new trip or an existing one
+            const isNewTrip = tripData.metadata.tripid === 'new';
+            const endpoint = isNewTrip ? '/trips' : `/trips/${tripid}`;
+            const method = isNewTrip ? 'POST' : 'PUT';
+
+            const res = await fetch(`${import.meta.env.VITE_API_URL}${endpoint}`, {
+                method: method,
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${userToken}`,
@@ -207,11 +212,10 @@ export default function TripEdit() {
             const data = await res.json();
             console.log(data);
 
-            // After successful save, navigate to My Trips using the correct route pattern
+            // After successful save, navigate to My Trips
             navigate(`/trips/${uid}`);
         } catch (error) {
             console.error('Failed to save trip:', error);
-            // Optionally add error handling/notification here
         }
     };
 

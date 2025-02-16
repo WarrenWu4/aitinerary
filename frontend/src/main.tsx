@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import TripTable from "./pages/TripTable";
 import TripView from "./pages/TripView"
 import TripEdit from "./pages/TripEdit";
+import SignIn from "./pages/SignIn";
 
 const root = document.getElementById("root");
 
@@ -21,7 +22,7 @@ ReactDOM.createRoot(root!).render(
       <Route path="/scrapbooks/:uid" element={<Home />} />
       <Route path="/scrapbooks/:uid/:tripid" element={<Home />} />
 
-      <Route path="/login" element={<Home />} />
+      <Route path="/signin" element={<SignIn />} />
 
       <Route path="*" element={<Home />} />
     </Routes>

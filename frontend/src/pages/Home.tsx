@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import PageContainer from "../components/PageContainer";
 import SearchLocation from "../components/SearchLocation";
@@ -9,6 +10,7 @@ import ScrollPrompt from "../components/ScrollPrompt";
 export default function Home() {
     const [searchTerm, setSearchTerm] = useState("");
     const [date, setDate] = useState("");
+    const navigate = useNavigate();
 
     return (
         <PageContainer>
@@ -23,7 +25,10 @@ export default function Home() {
                         
                         <DatePicker date={date} setDate={setDate} />
                         
-                        <button className="bg-[#E3D1FF] text-black font-semibold px-6 py-2 rounded-lg">
+                        <button 
+                            className="bg-[#E3D1FF] text-black font-semibold px-6 py-2 rounded-lg"
+                            onClick={() => navigate("/SignIn")}
+                        >
                             Plan
                         </button>
                     </div>

@@ -3,7 +3,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
 import auth
-from backend import retell_functions
+import retell_functions
 from db import db, trips_collection, days_collection, activities_collection, users_collection
 from models import (
     create_user, create_trip, create_day, create_activity, 

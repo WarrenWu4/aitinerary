@@ -3,7 +3,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
 import auth
-from db import db, trips_collection, days_collection, activities_collection
+from db import db, trips_collection, days_collection, activities_collection, users_collection
 from models import (
     create_user, create_trip, create_day, create_activity, 
     get_user_trips, get_user_by_oauth_id, to_json, update_trip, delete_trip
@@ -376,6 +376,78 @@ def update_existing_trip(trip_id):
         )
         
         return jsonify({"message": "Trip updated successfully", "trip_id": trip_id}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/trips/<trip_id>/collaborators", methods=["POST"])
+@requires_auth
+def add_collaborator(trip_id):
+    try:
+        data = request.json
+        email = data.get('email')
+        
+        if not email:
+            return jsonify({"error": "Email is required"}), 400
+            
+        # Get current user
+        current_user = get_current_user()
+        user = get_user_by_oauth_id(current_user['userinfo']['sub'])
+        
+        # Find trip
+        trip = trips_collection.find_one({"_id": ObjectId(trip_id)})
+        if not trip:
+            return jsonify({"error": "Trip not found"}), 404
+            
+        # Check if current user is the owner
+        if trip["owner_id"] != str(user['_id']):
+            return jsonify({"error": "Only the trip owner can add collaborators"}), 403
+            
+        # Find user by email
+        collaborator = users_collection.find_one({"email": email})
+        if not collaborator:
+            return jsonify({"error": "User not found"}), 404
+            
+        # Check if user is already a collaborator
+        if str(collaborator['_id']) in trip.get("collaborators", []):
+            return jsonify({"error": "User is already a collaborator"}), 400
+            
+        # Add collaborator
+        trips_collection.update_one(
+            {"_id": ObjectId(trip_id)},
+            {"$addToSet": {"collaborators": str(collaborator['_id'])}}
+        )
+        
+        return jsonify({
+            "message": "Collaborator added successfully",
+            "userId": str(collaborator['_id'])
+        }), 200
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/users/emails", methods=["POST"])
+@requires_auth
+def get_user_emails():
+    try:
+        data = request.json
+        user_ids = data.get('userIds', [])
+        
+        if not user_ids:
+            return jsonify({"emails": []}), 200
+            
+        # Convert string IDs to ObjectIds
+        object_ids = [ObjectId(uid) for uid in user_ids]
+        
+        # Find users and get their emails
+        users = users_collection.find(
+            {"_id": {"$in": object_ids}},
+            {"email": 1}
+        )
+        
+        emails = [user['email'] for user in users]
+        
+        return jsonify({"emails": emails}), 200
+        
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

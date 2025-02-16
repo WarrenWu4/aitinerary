@@ -41,6 +41,10 @@ export default function TripEdit() {
     const [tempTitle, setTempTitle] = useState('');
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('Overview');
+    const [collaboratorModalOpen, setCollaboratorModalOpen] = useState<boolean>(false);
+    const [newCollaborator, setNewCollaborator] = useState<string>('');
+    const [collaboratorError, setCollaboratorError] = useState<string>('');
+    const [collaboratorEmails, setCollaboratorEmails] = useState<string[]>([]);
 
     useEffect(() => {   
         if (dateRange[0] && dateRange[1] && tripData) {
@@ -108,6 +112,34 @@ export default function TripEdit() {
 
         fetchData();
     }, [initialTripData]);
+
+    useEffect(() => {
+        async function fetchCollaboratorEmails() {
+            if (!tripData?.metadata.collaborators.length) return;
+            
+            try {
+                const userToken = getCookie('session');
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/users/emails`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${userToken}`,
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ userIds: tripData.metadata.collaborators }),
+                });
+                
+                const data = await res.json();
+                if (res.ok) {
+                    setCollaboratorEmails(data.emails);
+                }
+            } catch (error) {
+                console.error('Failed to fetch collaborator emails:', error);
+            }
+        }
+
+        fetchCollaboratorEmails();
+    }, [tripData?.metadata.collaborators]);
 
     if (tripData === null) {
         return (
@@ -238,6 +270,41 @@ export default function TripEdit() {
         setIsEditingTitle(false);
     };
 
+    const addCollaborator = async () => {
+        try {
+            const userToken = getCookie('session');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/trips/${tripid}/collaborators`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userToken}`,
+                },
+                credentials: 'include',
+                body: JSON.stringify({ email: newCollaborator }),
+            });
+            
+            const data = await res.json();
+            
+            if (res.ok) {
+                setTripData({
+                    ...tripData,
+                    metadata: {
+                        ...tripData.metadata,
+                        collaborators: [...tripData.metadata.collaborators, data.userId]
+                    }
+                });
+                setCollaboratorModalOpen(false);
+                setNewCollaborator('');
+                setCollaboratorError('');
+            } else {
+                setCollaboratorError(data.error || 'Failed to add collaborator');
+            }
+        } catch (error) {
+            setCollaboratorError('Failed to add collaborator');
+            console.error('Failed to add collaborator:', error);
+        }
+    };
+
     const renderTabContent = () => {
         // Helper function to filter events
         const filterEventsByTypes = (events: EventData[], types?: EventTypes[]) => {
@@ -307,25 +374,8 @@ export default function TripEdit() {
 
                         {/* Right column - Stats & Actions */}
                         <div className="space-y-6">
-                            <div className='bg-white shadow-sm rounded-xl p-6 border border-gray-200'>
-                                <h3 className="font-alex font-bold text-xl mb-4">Quick Actions</h3>
-                                <div className="space-y-3">
-                                    <button 
-                                        onClick={() => setDropDownOpen(true)}
-                                        className='w-full font-alex px-4 py-2 rounded-lg text-black bg-[#E3D1FF] hover:bg-[#E3D1FF]/80 transition-colors flex items-center justify-center gap-x-2'
-                                    >
-                                        <FaPlus className="text-sm"/>
-                                        <span>Add Event</span>
-                                    </button>
-                                    <button 
-                                        onClick={saveTrip}
-                                        className='w-full font-alex px-4 py-2 rounded-lg text-white bg-black hover:bg-black/80 transition-colors'
-                                    >
-                                        Save Trip
-                                    </button>
-                                </div>
-                            </div>
-
+                            {renderQuickActions()}
+                            {renderCollaborators()}
                             <div className='bg-white shadow-sm rounded-xl p-6 border border-gray-200'>
                                 <h3 className="font-alex font-bold text-xl mb-4">Trip Stats</h3>
                                 <div className="space-y-3 text-sm">
@@ -443,6 +493,54 @@ export default function TripEdit() {
                 );
         }
     };
+
+    const renderQuickActions = () => (
+        <div className='bg-white shadow-sm rounded-xl p-6 border border-gray-200'>
+            <h3 className="font-alex font-bold text-xl mb-4">Quick Actions</h3>
+            <div className="space-y-3">
+                <button 
+                    onClick={() => setDropDownOpen(true)}
+                    className='w-full font-alex px-4 py-2 rounded-lg text-black bg-[#E3D1FF] hover:bg-[#E3D1FF]/80 transition-colors flex items-center justify-center gap-x-2'
+                >
+                    <FaPlus className="text-sm"/>
+                    <span>Add Event</span>
+                </button>
+                {tripData.metadata.tripid !== 'new' && (
+                    <button 
+                        onClick={() => setCollaboratorModalOpen(true)}
+                        className='w-full font-alex px-4 py-2 rounded-lg text-black bg-[#E3D1FF] hover:bg-[#E3D1FF]/80 transition-colors flex items-center justify-center gap-x-2'
+                    >
+                        <FaPlus className="text-sm"/>
+                        <span>Add Collaborator</span>
+                    </button>
+                )}
+                <button 
+                    onClick={saveTrip}
+                    className='w-full font-alex px-4 py-2 rounded-lg text-white bg-black hover:bg-black/80 transition-colors'
+                >
+                    Save Trip
+                </button>
+            </div>
+        </div>
+    );
+
+    const renderCollaborators = () => (
+        <div className='bg-white shadow-sm rounded-xl p-6 border border-gray-200'>
+            <h3 className="font-alex font-bold text-xl mb-4">Collaborators</h3>
+            {collaboratorEmails.length > 0 ? (
+                <div className="space-y-2">
+                    {collaboratorEmails.map((email, index) => (
+                        <div key={index} className="flex items-center gap-x-2 text-sm text-gray-600">
+                            <span className="w-2 h-2 rounded-full bg-[#E3D1FF]"></span>
+                            <span>{email}</span>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <p className="text-sm text-gray-500">No collaborators yet</p>
+            )}
+        </div>
+    );
 
     return (
         <PageContainer>
@@ -582,6 +680,40 @@ export default function TripEdit() {
                         className='w-full font-alex px-4 py-2 rounded-md text-white bg-black hover:bg-black/80 transition-colors'
                     >
                         Create Event
+                    </button>
+                </div>
+            </div>
+
+            {/* Modal for adding collaborators */}
+            <div className={`fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity ${collaboratorModalOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
+                <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-8 bg-white border border-gray-200 rounded-xl w-[90%] max-w-md shadow-2xl`}>
+                    <div className='flex items-center justify-between gap-x-4 mb-4'>
+                        <h2 className="text-xl font-semibold">Add Collaborator</h2>
+                        <button 
+                            onClick={() => {
+                                setCollaboratorModalOpen(false);
+                                setCollaboratorError('');
+                            }}
+                            className='px-2 py-1 rounded hover:bg-gray-100'
+                        >
+                            Close
+                        </button>
+                    </div>
+                    <input 
+                        type="email"
+                        placeholder="Enter collaborator's email"
+                        value={newCollaborator}
+                        onChange={(e) => setNewCollaborator(e.target.value)}
+                        className="w-full p-2 border rounded mb-4"
+                    />
+                    {collaboratorError && (
+                        <p className="text-red-500 text-sm mb-4">{collaboratorError}</p>
+                    )}
+                    <button 
+                        onClick={addCollaborator}
+                        className='w-full font-alex px-4 py-2 rounded-md text-white bg-black hover:bg-black/80 transition-colors'
+                    >
+                        Add Collaborator
                     </button>
                 </div>
             </div>

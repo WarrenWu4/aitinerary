@@ -5,6 +5,7 @@ import { useParams } from "react-router-dom"
 import { useEffect, useState } from "react";
 import { TripData } from "../types";
 import { FaArrowRightLong } from "react-icons/fa6";
+import ScheduleView from "../components/ScheduleView";
 
 export default function TripTable() {
 
@@ -47,6 +48,7 @@ export default function TripTable() {
                 <FaArrowRightLong />
                 <div className="rounded-md border-2 p-4 h-full">
                     <h3 className="font-bold">Schedule</h3>
+                    <ScheduleView/>
                 </div>
             </div>
         </PageContainer>

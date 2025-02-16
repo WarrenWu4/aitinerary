@@ -62,7 +62,7 @@ export default function Calendar({ startDate, endDate }: CalendarProps) {
                 {daysOfWeek.map((day, index) => (
                     <div
                         key={index}
-                        className={`p-2 rounded-md cursor-pointer text-sm font-medium`}
+                        className={`p-2 rounded-md cursor-pointer text-sm font-medium text-black/60`}
                     >
                         {day}
                     </div>
